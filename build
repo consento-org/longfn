@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+const libwabt = require('wat2wasm/libwabt')
+const fs = require('fs').promises
+
+async function getWasm (fileName, features, write_debug_names, log) {
+  console.log(`Loading ${fileName}`)
+  const source = await fs.readFile(fileName, 'utf-8')
+  const module = await new Promise((resolve, reject) => {
+    libwabt().then(
+      wabt => {
+        try {
+          resolve(wabt.parseWat(fileName, source, features))
+        } catch (ex) {
+          ex.message = ex.message.replace('parseWat failed:\n', '')
+          reject(ex)
+        }
+      },
+      reject
+    )
+  })
+  module.resolveNames()
+  module.validate(features)
+  return module.toBinary({
+    log,
+    write_debug_names
+  })
+}
+
+;(async () => {
+  const module = await getWasm(`${__dirname}/src/wasm.wat`, [], false, false)
+  console.log('Inserting wasm into ./src/index.js and writing to ./index.js')
+  let index = await fs.readFile(`${__dirname}/src/index.js`, 'utf-8')
+  index = index.replace('// WASM Binary to be inserted by build script', module.buffer.toString())
+  await fs.writeFile(`${__dirname}/index.js`, index)
+})().catch(err => {
+  console.error(err)
+  process.exit(1)
+})

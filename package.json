@@ -1,0 +1,28 @@
+{
+  "name": "longfn",
+  "version": "1.0.0",
+  "description": "Rewritten variant of long.js that is entirely functional (and faster because of it)",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build",
+    "lint": "standard",
+    "test": "tape test/index.js",
+    "test:verbose": "env TEST_VERBOSE=1 npm run test"
+  },
+  "keywords": [
+    "math",
+    "long",
+    "functional",
+    "int64",
+    "uint64"
+  ],
+  "author": "Martin Heidegger <martin.heidegger@gmail.com>",
+  "license": "APL",
+  "devDependencies": {
+    "long": "^4.0.0",
+    "secure-shuffle": "^2.0.0",
+    "standard": "^14.3.4",
+    "tape": "^5.0.1",
+    "wat2wasm": "^3.0.0"
+  }
+}
