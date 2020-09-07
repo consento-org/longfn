@@ -95,6 +95,108 @@ function toNumber (long) {
   return long.high * TWO_PWR_32_DBL + (long.low >>> 0)
 }
 
+function toBytesLE (long, offset, target) {
+  if (offset && offset.buffer) {
+    return toBytesLE(long, target, offset)
+  }
+  const i = offset || 0
+  target = target || new Uint8Array(i + 8)
+  let out = target
+  if (out.buffer && !(target instanceof Uint8Array)) {
+    out = new Uint8Array(target.buffer)
+  }
+  const hi = long.high
+  const lo = long.low
+  out[i] = lo & 0xff
+  out[i + 1] = lo >>> 8 & 0xff
+  out[i + 2] = lo >>> 16 & 0xff
+  out[i + 3] = lo >>> 24
+  out[i + 4] = hi & 0xff
+  out[i + 5] = hi >>> 8 & 0xff
+  out[i + 6] = hi >>> 16 & 0xff
+  out[i + 7] = hi >>> 24
+  return target
+}
+
+function fromBytesLE (source, unsigned, offset, target) {
+  if (typeof offset === 'object') {
+    return fromBytesLE(source, unsigned, 0, offset)
+  }
+  if (typeof unsigned === 'number') {
+    return fromBytesLE(source, undefined, unsinged, offset)
+  }
+  if (target === null || target === undefined) {
+    target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
+  }
+  if (!(source instanceof Uint8Array)) {
+    source = new Uint8Array(source.buffer)
+  }
+  const i = offset || 0
+  return fromBits(
+    source[i] |
+    source[i + 1] << 8 |
+    source[i + 2] << 16 |
+    source[i + 3] << 24,
+    source[i + 4] |
+    source[i + 5] << 8 |
+    source[i + 6] << 16 |
+    source[i + 7] << 24,
+    unsigned,
+    target
+  )
+}
+
+function toBytesBE (long, offset, target) {
+  if (offset && offset.buffer) {
+    return toBytesBE(long, target, offset)
+  }
+  const i = offset || 0
+  target = target || new Uint8Array(i + 8)
+  let out = target
+  if (out.buffer && !(target instanceof Uint8Array)) {
+    out = new Uint8Array(target.buffer)
+  }
+  const hi = long.high
+  const lo = long.low
+  out[i] = hi >>> 24
+  out[i + 1] = hi >>> 16 & 0xff
+  out[i + 2] = hi >>> 8 & 0xff
+  out[i + 3] = hi & 0xff
+  out[i + 4] = lo >>> 24
+  out[i + 5] = lo >>> 16 & 0xff
+  out[i + 6] = lo >>> 8 & 0xff
+  out[i + 7] = lo & 0xff
+  return target
+}
+
+function fromBytesBE (source, unsigned, offset, target) {
+  if (typeof offset === 'object') {
+    return fromBytesBE(source, unsigned, 0, offset)
+  }
+  if (typeof unsigned === 'number') {
+    return fromBytesBE(source, undefined, unsinged, offset)
+  }
+  if (target === null || target === undefined) {
+    target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
+  }
+  if (!(source instanceof Uint8Array)) {
+    source = new Uint8Array(source.buffer)
+  }
+  const i = offset || 0
+  return fromBits(
+    source[i + 4] << 24 |
+    source[i + 5] << 16 |
+    source[i + 6] << 8 |
+    source[i + 7],
+    source[i] << 24 |
+    source[i + 1] << 16 |
+    source[i + 2] << 8 |
+    source[i + 3],
+    unsigned,
+    target
+  )
+}
+
 const toString = (function () {
   const TMP_NEG = fromInt(0)
   const radixLong = fromInt(0)
@@ -825,6 +927,12 @@ module.exports = Object.freeze({
   toNumber: toNumber,
   toInt: toInt,
   toString: toString,
+  toBytes: isLE ? toBytesLE : toBytesBE,
+  toBytesLE: toBytesLE,
+  toBytesBE: toBytesBE,
+  fromBytes: isLE ? fromBytesLE : fromBytesBE,
+  fromBytesLE: fromBytesLE,
+  fromBytesBE: fromBytesBE,
   fromNumber: fromNumber,
   fromBits: fromBits,
   fromString: fromString,

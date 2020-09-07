@@ -92,7 +92,6 @@ declare namespace longfn {
   function fromBytesBE (bytes: ArrayBufferView, unsigned: truey, target?: ILongLike): IULong
   function fromBytesBE (bytes: ArrayBufferView, unsigned: falsey, offset: number, target?: ILongLike): ISLong
   function fromBytesBE (bytes: ArrayBufferView, unsigned: truey, offset: number, target?: ILongLike): IULong
-
   function toString (long: ILong, radix?: number): string
 
   function isEven (long: ILong): boolean
