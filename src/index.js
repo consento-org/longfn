@@ -80,6 +80,10 @@ function eq (a, b) {
   return a.high === b.high && a.low === b.low
 }
 
+function ne (a, b) {
+  return !eq(a, b)
+}
+
 function lt (a, b) {
   return compare(a, b) < 0
 }
@@ -623,6 +627,7 @@ module.exports = Object.freeze({
   isEven: isEven,
   clone: clone,
   eq: eq,
+  ne: ne,
   lt: lt,
   le: le,
   gt: gt,

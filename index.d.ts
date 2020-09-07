@@ -48,6 +48,7 @@ declare namespace longfn {
   function isPositive (long: ILong): boolean
   function isZero (long: ILong): boolean
   function isOdd (long: ILong): boolean
+  function ne (a: ILong, b: ILong): boolean
   function lt (a: ILong, b: ILong): boolean
   function le (a: ILong, b: ILong): boolean
   function gt (a: ILong, b: ILong): boolean
