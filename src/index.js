@@ -82,6 +82,9 @@ function isEven (long) {
 }
 
 function eq (a, b) {
+  if (!a.unsigned !== !b.unsigned && (a.high >>> 31) === 1 && (b.high >>> 31) === 1) {
+    return false
+  }
   return a.high === b.high && a.low === b.low
 }
 
