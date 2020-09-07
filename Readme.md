@@ -62,9 +62,8 @@ example create **no** temporary instance for this operation!
 This should result in a more stable and predictable runtime behavior in games or
 crypto applications.
 
-In pratice this resulted in a noticable gain ~20% of `longfn` over `long.js` when wasm is active
-but in a ~400% gain when wasm isnt active. In fact, we are seing an almost equal performance
-of the javascript implementation as the wasm implementation.
+In pratice this resulted in a noticable gain ~30% of `longfn` over `long.js` when wasm is available
+but a massive **~500% gain** when wasm isnt available!
 
 ## State
 
@@ -76,7 +75,7 @@ Please let us know if you find a case where this library does not work for you!
 
 ## API
 
-See [the TypeScript definition](./index.d.ts) for the API specification
+See [the TypeScript definition](./index.d.ts) for the available functions.
 
 ## Background
 
@@ -84,7 +83,9 @@ The ECMA-262 11th Edition _does_ support [BigInt](https://github.com/tc39/propos
 are of arbitrary size/length. When trying to port an algorithm written in (u)int64 numbers it might be a good
 idea to still have a comparable implementation (such as this) handy.
 
-With the inclusion 
+With [Webassembly](https://en.wikipedia.org/wiki/WebAssembly)(wasm) becoming a reality in 2017, it has become easier/
+possible to write (u)int64 implementations with JavaScript. But while wasm has been deployed on several
+platforms, it has yet to reach many minor environments (like [React-Native](https://react-native.canny.io/feature-requests/p/support-wasmwebassembly)).
 
 As of ECMA-262 5th Edition, "all the positive and negative integers whose magnitude is no greater than 253 are representable in the Number type", which is "representing the doubleprecision 64-bit format IEEE 754 values as specified in the IEEE Standard for Binary Floating-Point Arithmetic". The maximum safe integer in JavaScript is 253-1.
 
@@ -93,10 +94,6 @@ Example: 264-1 is 18446744073709551615 but in JavaScript it evaluates to 1844674
 Furthermore, bitwise operators in JavaScript "deal only with integers in the range −231 through 231−1, inclusive, or in the range 0 through 232−1, inclusive. These operators accept any value of the Number type but first convert each such value to one of 232 integer values."
 
 In some use cases, however, it is required to be able to reliably work with and perform bitwise operations on the full 64 bits. This is where long.js comes into play.
-
-## Contributions
-
-
 
 ## License
 
