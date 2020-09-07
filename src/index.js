@@ -56,6 +56,38 @@ function fromInt (value, unsigned, target) {
   return fromBits(value, high, unsigned, target)
 }
 
+// Ported from: https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L161-L178
+function fromNumber (value, unsigned, target) {
+  if (target === null || target === undefined) {
+    target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
+  }
+  if (isNaN(value)) {
+    return copy(unsigned ? UZERO : ZERO, target)
+  }
+  if (unsigned) {
+    if (value < 0) {
+      return copy(UZERO, target)
+    }
+    if (value >= TWO_PWR_64_DBL) {
+      return copy(MAX_UNSIGNED_VALUE, target)
+    }
+  } else {
+    if (value <= -TWO_PWR_63_DBL) {
+      return copy(MIN_VALUE, target)
+    }
+    if (value + 1 >= TWO_PWR_63_DBL) {
+      return copy(MAX_VALUE, target)
+    }
+    if (value < 0) {
+      return neg(fromNumber(-value, unsigned, target), target)
+    }
+  }
+  target.low = (value % TWO_PWR_32_DBL) | 0
+  target.high = (value / TWO_PWR_32_DBL) | 0
+  target.unsigned = !!unsigned
+  return target
+}
+
 function toNumber (long) {
   if (long.unsigned) {
     return ((long.high >>> 0) * TWO_PWR_32_DBL) + (long.low >>> 0)
@@ -346,38 +378,6 @@ function shl (long, numBits, target) {
     target.high = long.low << (numBits - 32)
   }
   target.unsigned = !!long.unsigned
-  return target
-}
-
-// Ported from: https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L161-L178
-function fromNumber (value, unsigned, target) {
-  if (target === null || target === undefined) {
-    target = { low: 0, high: 0, unsigned: unsigned }
-  }
-  if (isNaN(value)) {
-    return copy(unsigned ? UZERO : ZERO, target)
-  }
-  if (unsigned) {
-    if (value < 0) {
-      return copy(UZERO, target)
-    }
-    if (value >= TWO_PWR_64_DBL) {
-      return copy(MAX_UNSIGNED_VALUE, target)
-    }
-  } else {
-    if (value <= -TWO_PWR_63_DBL) {
-      return copy(MIN_VALUE, target)
-    }
-    if (value + 1 >= TWO_PWR_63_DBL) {
-      return copy(MAX_VALUE, target)
-    }
-    if (value < 0) {
-      return neg(fromNumber(-value, unsigned, target), target)
-    }
-  }
-  target.low = (value % TWO_PWR_32_DBL) | 0
-  target.high = (value / TWO_PWR_32_DBL) | 0
-  target.unsigned = !!unsigned
   return target
 }
 
