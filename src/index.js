@@ -533,9 +533,14 @@ function modwasm (long, divisor, target) {
   return target
 }
 
-function modjs (long, divisor, target) {
-  return sub(long, muljs(divjs(long, divisor, {}), divisor, {}), target)
-}
+const modjs = (function () {
+  const tmp = fromInt(0)
+  return function modjs (long, divisor, target) {
+    divjs(long, divisor, tmp)
+    muljs(tmp, divisor, tmp)
+    return sub(long, tmp, target)
+  }
+})()
 
 function rotl (long, numBits, target) {
   if ((numBits &= 63) === 0) {
