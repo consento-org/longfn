@@ -590,7 +590,7 @@ const mul = wasm ? mulwasm : muljs
 const div = wasm ? divwasm : divjs
 module.exports = Object.freeze({
   ZERO: ZERO,
-  UZERO, UZERO,
+  UZERO: UZERO,
   ONE: ONE,
   UONE: UONE,
   NEG_ONE: NEG_ONE,
