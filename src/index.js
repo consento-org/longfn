@@ -12,9 +12,6 @@ const UONE = Object.freeze(fromInt(1, true))
 const NEG_ONE = Object.freeze(fromInt(-1))
 const ZERO = Object.freeze(fromInt(0))
 const UZERO = Object.freeze(fromInt(0, true))
-
-const TMP_COMPARE = fromInt(0)
-
 const isLE = new Uint16Array(new Uint8Array([0xAA, 0xBB]).buffer)[0] === 0xBBAA
 
 const powDbl = Math.pow // Used 4 times (4*8 to 15+4)
@@ -205,25 +202,28 @@ const sub = (function () {
   }
 })()
 
-function compare (a, b) {
-  if (eq(a, b)) {
-    return 0
+const compare = (function () {
+  const tmp = fromInt(0)
+  return function compare (a, b) {
+    if (eq(a, b)) {
+      return 0
+    }
+    const aNeg = isNegative(a)
+    const bNeg = isNegative(b)
+    if (aNeg && !bNeg) {
+      return -1
+    }
+    if (!aNeg && bNeg) {
+      return 1
+    }
+    // At this point the sign bits are the same
+    if (!a.unsigned) {
+      return isNegative(sub(a, b, tmp)) ? -1 : 1
+    }
+    // Both are positive if at least one is unsigned
+    return (b.high >>> 0) > (a.high >>> 0) || (b.high === a.high && (b.low >>> 0) > (a.low >>> 0)) ? -1 : 1
   }
-  const aNeg = isNegative(a)
-  const bNeg = isNegative(b)
-  if (aNeg && !bNeg) {
-    return -1
-  }
-  if (!aNeg && bNeg) {
-    return 1
-  }
-  // At this point the sign bits are the same
-  if (!a.unsigned) {
-    return isNegative(sub(a, b, TMP_COMPARE)) ? -1 : 1
-  }
-  // Both are positive if at least one is unsigned
-  return (b.high >>> 0) > (a.high >>> 0) || (b.high === a.high && (b.low >>> 0) > (a.low >>> 0)) ? -1 : 1
-}
+})()
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L1157-L1172
 function shr (long, numBits, target) {
