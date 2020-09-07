@@ -580,8 +580,8 @@ function rotr (long, numBits, target) {
 }
 
 function copy (source, target, forceUnsigned) {
-  target.low = source.low
-  target.high = source.high
+  target.low = source.low | 0
+  target.high = source.high | 0
   target.unsigned = forceUnsigned !== undefined ? forceUnsigned : !!source.unsigned
   return target
 }
