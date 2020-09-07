@@ -49,10 +49,10 @@ declare namespace longfn {
   function isZero (long: ILong): boolean
   function isOdd (long: ILong): boolean
   function ne (a: ILong, b: ILong): boolean
-  function lt (a: ILong, b: ILong): boolean
-  function le (a: ILong, b: ILong): boolean
-  function gt (a: ILong, b: ILong): boolean
-  function ge (a: ILong, b: ILong): boolean
+  function lt (long: ILong, greater: ILong): boolean
+  function le (long: ILong, sameOrGreater: ILong): boolean
+  function gt (long: ILong, sameOrLesser: ILong): boolean
+  function ge (long: ILong, lesser: ILong): boolean
   function mod (long: ILong, divisor: ILong, target: ILongLike): ILong
   function rotl <TLong extends ILong>(long: TLong, numBits: number, target: ILongLike): TLong
   function rotr <TLong extends ILong>(long: TLong, numBits: number, target: ILongLike): TLong

@@ -84,20 +84,20 @@ function ne (a, b) {
   return !eq(a, b)
 }
 
-function lt (a, b) {
-  return compare(a, b) < 0
+function lt (long, greater) {
+  return compare(long, greater) < 0
 }
 
-function le (a, b) {
-  return compare(a, b) <= 0
+function le (long, sameOrGreater) {
+  return compare(long, sameOrGreater) <= 0
 }
 
-function ge (a, b) {
-  return compare(a, b) >= 0
+function ge (long, sameOrLesser) {
+  return compare(long, sameOrLesser) >= 0
 }
 
-function gt (a, b) {
-  return compare(a, b) > 0
+function gt (long, lesser) {
+  return compare(long, lesser) > 0
 }
 
 function isNegative (long) {
