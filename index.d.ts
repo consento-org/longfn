@@ -50,6 +50,8 @@ declare namespace longfn {
   function fromInt (number: number, unsigned?: false, target?: ILongLike): ISLong
   function fromNumber (value: number, unsigned: true, target?: ILongLike): IULong
   function fromNumber (value: number, unsigned?: false, target?: ILongLike): ISLong
+  function fromBits (low: number, high: number, unsigned: true, target?: ILongLike): IULong
+  function fromBits (low: number, high: number, unsigned?: false, target?: ILongLike): ISLong
   function fromString (input: string, unsigned?: falsey, target?: ILongLike): ISLong
   function fromString (input: string, unsigned: truey, target?: ILongLike): IULong
   function fromString (input: string, unsigned: truey, radix: RADIX, target?: ILongLike): IULong

@@ -30,20 +30,30 @@ try {
   // no wasm support :(
 }
 
-function fromInt (value, unsigned, target) {
+function fromBits (low, high, unsigned, target) {
   if (target === undefined || target === null) {
-    target = { low: 0, high: 0, unsigned: unsigned }
+    return {
+      low: low | 0,
+      high: high | 0,
+      unsigned: !!unsigned
+    }
   }
-  if (unsigned) {
-    value >>>= 0
-    target.high = (value | 0) < 0 ? -1 : 0
-  } else {
-    value |= 0
-    target.high = value < 0 ? -1 : 0
-  }
-  target.low = value
+  target.low = low | 0
+  target.high = high | 0
   target.unsigned = !!unsigned
   return target
+}
+
+function fromInt (value, unsigned, target) {
+  let high
+  if (unsigned) {
+    value >>>= 0
+    high = ((value | 0) < 0 ? -1 : 0) | 0
+  } else {
+    value |= 0
+    high = (value < 0 ? -1 : 0) | 0
+  }
+  return fromBits(value, high, unsigned, target)
 }
 
 function toNumber (long) {
@@ -816,6 +826,7 @@ module.exports = Object.freeze({
   toInt: toInt,
   toString: toString,
   fromNumber: fromNumber,
+  fromBits: fromBits,
   fromString: fromString,
   fromFloat: fromFloat
 })
