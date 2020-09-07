@@ -29,8 +29,6 @@ declare namespace longfn {
   const MIN_VALUE: ISLong
   const MAX_UNSIGNED_VALUE: IULong
 
-  function fromFloat (float: number, unsigned: true): IULong
-  function fromFloat (float: number, unsigned?: false): ISLong
   type RADIX =
     2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
     10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 |
@@ -46,6 +44,8 @@ declare namespace longfn {
   type truey = truish | true
   type falsey = falsish | false
 
+  function fromFloat (float: number, unsigned: true, target?: ILongLike): IULong
+  function fromFloat (float: number, unsigned?: false, target?: ILongLike): ISLong
   function fromInt (number: number, unsigned: true, target?: ILongLike): IULong
   function fromInt (number: number, unsigned?: false, target?: ILongLike): ISLong
   function fromNumber (value: number, unsigned: true, target?: ILongLike): IULong
@@ -99,6 +99,8 @@ declare namespace longfn {
   function isPositive (long: ILong): boolean
   function isZero (long: ILong): boolean
   function isOdd (long: ILong): boolean
+  function compare (a: ILong, b: ILong): number
+  function eq (a: ILong, b: ILong): boolean
   function ne (a: ILong, b: ILong): boolean
   function lt (long: ILong, greater: ILong): boolean
   function le (long: ILong, sameOrGreater: ILong): boolean
@@ -117,8 +119,6 @@ declare namespace longfn {
   function neg <TLong extends ILong>(long: TLong, target: ILongLike): TLong
   function add (long: ILong, addend: ILong, target: ILongLike): ILong
   function and (long: ILong, other: ILong, target: ILongLike): ILong
-  function compare (a: ILong, b: ILong): number
-  function eq (a: ILong, b: ILong): boolean
   function div (long: ILong, divisor: ILong, target: ILongLike): ILong
   function mul <TLong extends ISLong | IULong>(long: TLong, multiplier: TLong, target?: ILongLike): TLong
 }
