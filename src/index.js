@@ -15,7 +15,6 @@ const UZERO = Object.freeze(fromInt(0, true))
 
 const TMP_COMPARE = fromInt(0)
 const TMP_SUBTRACT = fromInt(0)
-const TMP_NEGATE = fromInt(0)
 const TMP_CONVERT_BUFFER = new ArrayBuffer(8)
 const TMP_CONVERT_FLOAT = new Float64Array(TMP_CONVERT_BUFFER)
 const TMP_CONVERT_INT = new Uint32Array(TMP_CONVERT_BUFFER)
@@ -180,12 +179,15 @@ function and (long, other, target) {
   return target
 }
 
-function neg (long, target) {
-  if (!long.unsigned && eq(long, MIN_VALUE)) {
-    return copy(MIN_VALUE, target, false)
+const neg = (function () {
+  const tmp = fromInt(0)
+  return function neg (long, target) {
+    if (!long.unsigned && eq(long, MIN_VALUE)) {
+      return copy(MIN_VALUE, target, false)
+    }
+    return add(not(long, tmp), ONE, target)
   }
-  return add(not(long, TMP_NEGATE), ONE, target)
-}
+})()
 
 function sub (long, subtrahend, target) {
   return add(long, neg(subtrahend, TMP_SUBTRACT), target)
