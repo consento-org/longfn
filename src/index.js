@@ -396,9 +396,13 @@ function mulwasm (long, multiplier, target, _) {
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L957-L1062
 const divjs = (function () {
-  const rem2 = fromInt(0)
+  const rem = fromInt(0)
   const approxRes = fromInt(0)
   const approxRem = fromInt(0)
+  const negLong = fromInt(0)
+  const negDivisor = fromInt(0)
+  const unsignedDivisor = fromInt(0)
+  const halfUnsigned = fromInt(0)
   return function divjs (long, divisor, target) {
     if (isZero(divisor)) {
       throw Error('division by zero')
@@ -423,33 +427,33 @@ const divjs = (function () {
         if (eq(approx, ZERO)) {
           return copy(isNegative(divisor) ? ONE : NEG_ONE, target, false)
         }
-        const rem1 = sub(long, muljs(divisor, approx, {}), {})
-        return add(approx, divjs(rem1, divisor, {}), target)
+        sub(long, muljs(divisor, approx, target), target)
+        return add(approx, divjs(target, divisor, target), target)
       }
       if (eq(divisor, MIN_VALUE)) {
         return copy(ZERO, target)
       }
       if (isNegative(long)) {
-        long = neg(long, {})
+        long = neg(long, negLong)
         if (isNegative(divisor)) {
-          return divjs(long, neg(divisor, {}), target)
+          return divjs(long, neg(divisor, negDivisor), target)
         }
-        return neg(divjs(long, divisor, {}), target)
+        return neg(divjs(long, divisor, target), target)
       }
       if (isNegative(divisor)) {
-        return neg(divjs(long, neg(divisor, {}), {}), target)
+        return neg(divjs(long, neg(divisor, negDivisor), target), target)
       }
       copy(ZERO, target)
     } else {
       // The algorithm below has not been made for unsigned longs. It's therefore
       // required to take special care of the MSB prior to running it.
       if (!divisor.unsigned) {
-        divisor = copy(divisor, {}, true)
+        divisor = copy(divisor, unsignedDivisor, true)
       }
       if (gt(divisor, long)) {
         return copy(UZERO, target)
       }
-      if (gt(divisor, shru(long, 1, {}))) { // 15 >>> 1 = 7 ; with divisor = 8 ; true
+      if (gt(divisor, shru(long, 1, halfUnsigned))) { // 15 >>> 1 = 7 ; with divisor = 8 ; true
         return copy(UONE, target)
       }
       copy(UZERO, target)
@@ -460,11 +464,11 @@ const divjs = (function () {
     // into the result, and subtract it from the remainder.  It is critical that
     // the approximate value is less than or equal to the real value so that the
     // remainder never becomes negative.
-    copy(long, rem2)
-    while (ge(rem2, divisor)) {
+    copy(long, rem)
+    while (ge(rem, divisor)) {
       // Approximate the result of division. This may be a little greater or
       // smaller than the actual value.
-      let approx = Math.max(1, Math.floor(toNumber(rem2) / toNumber(divisor)))
+      let approx = Math.max(1, Math.floor(toNumber(rem) / toNumber(divisor)))
 
       // We will tweak the approximate result by changing it in the 48-th digit or
       // the smallest non-fractional digit, whichever is larger.
@@ -475,7 +479,7 @@ const divjs = (function () {
       // that if it is too large, the product overflows and is negative.
       fromNumber(approx, false, approxRes)
       muljs(approxRes, divisor, approxRem)
-      while (isNegative(approxRem) || gt(approxRem, rem2)) {
+      while (isNegative(approxRem) || gt(approxRem, rem)) {
         approx -= delta
         fromNumber(approx, long.unsigned, approxRes)
         muljs(approxRes, divisor, approxRem)
@@ -484,7 +488,7 @@ const divjs = (function () {
       // We know the answer can't be zero... and actually, zero would cause
       // infinite recursion since we would make no progress.
       add(target, isZero(approxRes) ? ONE : approxRes, target)
-      sub(rem2, approxRem, rem2)
+      sub(rem, approxRem, rem)
     }
     return target
   }
