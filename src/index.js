@@ -20,14 +20,7 @@ const TMP_CONVERT_BUFFER = new ArrayBuffer(8)
 const TMP_CONVERT_FLOAT = new Float64Array(TMP_CONVERT_BUFFER)
 const TMP_CONVERT_INT = new Uint32Array(TMP_CONVERT_BUFFER)
 
-const isLE = (function () {
-  const arrayBuffer = new ArrayBuffer(2)
-  const uint8Array = new Uint8Array(arrayBuffer)
-  const uint16array = new Uint16Array(arrayBuffer)
-  uint8Array[0] = 0xAA // set first byte
-  uint8Array[1] = 0xBB // set second byte
-  return uint16array[0] === 0xBBAA
-})()
+const isLE = new Uint16Array(new Uint8Array([0xAA, 0xBB]).buffer)[0] === 0xBBAA
 
 const powDbl = Math.pow // Used 4 times (4*8 to 15+4)
 
