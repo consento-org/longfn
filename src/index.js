@@ -586,6 +586,8 @@ function copy (source, target, forceUnsigned) {
   return target
 }
 
+const mul = wasm ? mulwasm : muljs
+const div = wasm ? divwasm : divjs
 module.exports = Object.freeze({
   ZERO: ZERO,
   UZERO, UZERO,
@@ -612,8 +614,8 @@ module.exports = Object.freeze({
   shl: shl,
   rotr: rotr,
   rotl: rotl,
-  mul: wasm ? mulwasm : muljs,
-  div: wasm ? divwasm : divjs,
+  mul,
+  div,
   mod: wasm ? modwasm : modjs,
   add: add,
   sub: sub,
