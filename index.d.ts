@@ -116,6 +116,8 @@ declare namespace longfn {
   function xor <TLong extends ILong>(long: TLong, other: TLong, target: ILongLike): TLong
   function not <TLong extends ILong>(long: TLong, target: ILongLike): TLong
   function copy <TLong extends ILong>(source: TLong, target: ILongLike): TLong
+  function copy (source: ILong, target: ILongLike, unsigned: truish): IULong
+  function copy (source: ILong, target: ILongLike, unsigned: falsish): ISLong
   function neg <TLong extends ILong>(long: TLong, target: ILongLike): TLong
   function add (long: ILong, addend: ILong, target: ILongLike): ILong
   function and (long: ILong, other: ILong, target: ILongLike): ILong
