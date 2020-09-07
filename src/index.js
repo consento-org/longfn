@@ -23,7 +23,7 @@ let wasm = null
 
 try {
   // Ported from
-  wasm = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array([
+  wasm = new global.WebAssembly.Instance(new global.WebAssembly.Module(new Uint8Array([
     // WASM Binary to be inserted by build script
   ])), {}).exports
 } catch (e) {
