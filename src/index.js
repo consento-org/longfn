@@ -88,6 +88,19 @@ function fromNumber (value, unsigned, target) {
   return target
 }
 
+function fromValue (value, unsigned, target) {
+  if (typeof unsigned === 'object') {
+    return fromValue(value, null, target)
+  }
+  if (typeof value === 'number') {
+    return fromNumber(value, unsigned, target)
+  }
+  if (typeof value === 'string') {
+    return fromString(value, unsigned, target)
+  }
+  return fromBits(value.low, value.high, typeof unsigned === 'boolean' ? unsigned : value.unsigned, target)
+}
+
 function toNumber (long) {
   if (long.unsigned) {
     return ((long.high >>> 0) * TWO_PWR_32_DBL) + (long.low >>> 0)
@@ -930,6 +943,7 @@ module.exports = Object.freeze({
   toBytes: isLE ? toBytesLE : toBytesBE,
   toBytesLE: toBytesLE,
   toBytesBE: toBytesBE,
+  fromValue: fromValue,
   fromBytes: isLE ? fromBytesLE : fromBytesBE,
   fromBytesLE: fromBytesLE,
   fromBytesBE: fromBytesBE,
