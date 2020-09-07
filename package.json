@@ -6,9 +6,19 @@
   "scripts": {
     "build": "node build",
     "lint": "standard",
-    "test": "tape test/index.js",
-    "test:verbose": "env TEST_VERBOSE=1 npm run test"
     "types": "npx tsd",
+    "test": "npm run lint && npm run cover && npm run perf && npm run types",
+    "perf": "npm run perf:wasm && npm run perf:js",
+    "perf:wasm": "node test/perf.js",
+    "perf:js": "node --noexpose_wasm test/perf.js",
+    "unit": "npm run lint && npm run test:wasm && npm run test:js",
+    "unit:wasm": "node test/index.js",
+    "unit:js": "node --noexpose_wasm test/index.js",
+    "verbose": "env TEST_VERBOSE=1 npm run unit",
+    "cover": "npm run cover:wasm && npm run cover:js && npm run cover:report",
+    "cover:wasm": "nyc --silent --no-clean npm run unit:wasm",
+    "cover:js": "nyc --silent --no-clean npm run unit:js",
+    "cover:report": "nyc report --reporter=lcov --reporter=html"
   },
   "keywords": [
     "math",
@@ -21,6 +31,7 @@
   "license": "APL",
   "devDependencies": {
     "long": "^4.0.0",
+    "nyc": "^15.1.0",
     "secure-shuffle": "^2.0.0",
     "standard": "^14.3.4",
     "tape": "^5.0.1",

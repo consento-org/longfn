@@ -1,2 +1,4 @@
 /index.js
 package-lock.json
+coverage
+.nyc_output
