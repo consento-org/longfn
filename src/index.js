@@ -53,6 +53,65 @@ function toNumber (long) {
   return long.high * TWO_PWR_32_DBL + (long.low >>> 0)
 }
 
+const toString = (function () {
+  const TMP_NEG = fromInt(0)
+  const radixLong = fromInt(0)
+  const tmpDiv = fromInt(0)
+  const rem1 = fromInt(0)
+  const TMP_REM2 = fromInt(0)
+  const TMP_RADIX_POW = fromInt(0)
+  const TMP_REMDIV = fromInt(0)
+  const TMP_INTVAL = fromInt(0)
+  // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L480-L516
+  return function toString (long, radix) {
+    if (radix === undefined || radix === null || radix === 0 || radix === false) {
+      radix = 10
+    } else if (typeof radix === 'string') {
+      radix = parseInt(radix, 10)
+    }
+    if (radix < 2 || radix > 36) {
+      throw new RangeError(`Radix between 2 and 36 expected, got: ${radix}`)
+    }
+    if (isZero(long)) {
+      return '0'
+    }
+    if (isNegative(long)) { // Unsigned Longs are never negative
+      if (eq(long, MIN_VALUE)) {
+        // We need to change the Long value before it can be negated, so we remove
+        // the bottom-most digit in this base and then recurse to do the rest.
+        fromNumber(radix, false, radixLong)
+        div(long, radixLong, tmpDiv)
+        mul(tmpDiv, radixLong, rem1)
+        sub(rem1, long, rem1)
+        return toString(tmpDiv, radix) + toInt(rem1).toString(radix)
+      } else {
+        return '-' + toString(neg(long, TMP_NEG), radix)
+      }
+    }
+
+    // Do several (6) digits each time through the loop, so as to
+    // minimize the calls to the very expensive emulated div.
+    fromNumber(powDbl(radix, 6), long.unsigned, TMP_RADIX_POW)
+    copy(long, TMP_REM2)
+    let result = ''
+    while (true) {
+      div(TMP_REM2, TMP_RADIX_POW, TMP_REMDIV)
+      mul(TMP_REMDIV, TMP_RADIX_POW, TMP_INTVAL)
+      const intval = toInt(sub(TMP_REM2, TMP_INTVAL, TMP_INTVAL)) >>> 0
+      let digits = intval.toString(radix)
+      copy(TMP_REMDIV, TMP_REM2)
+      if (isZero(TMP_REM2)) {
+        return digits + result
+      } else {
+        while (digits.length < 6) {
+          digits = '0' + digits
+        }
+        result = '' + digits + result
+      }
+    }
+  }
+})()
+
 function clone (long) {
   return copy(long, {})
 }
@@ -611,6 +670,110 @@ function copy (source, target, forceUnsigned) {
 
 const mul = wasm ? mulwasm : muljs
 const div = wasm ? divwasm : divjs
+let RADIX_DIGITS
+function getDigitsByRadix (radix) {
+  if (RADIX_DIGITS === undefined) {
+    RADIX_DIGITS = {}
+    for (let radix = 2; radix <= 36; radix++) {
+      const radixLng = fromInt(radix, true)
+      const digitsByPos = []
+      let multi = fromInt(1, true)
+      let prev = fromInt(0, true)
+      for (let pos = 0; gt(multi, prev); pos++) {
+        const lookup = {}
+        digitsByPos.push(lookup)
+        for (let digit = 1; digit < radix; digit++) {
+          const num = fromInt(digit, true)
+          lookup[digit.toString(radix)] = mul(num, multi, num)
+        }
+        const tmp = prev
+        prev = multi
+        multi = mul(multi, radixLng, tmp)
+      }
+      RADIX_DIGITS[radix] = digitsByPos
+    }
+  }
+  return RADIX_DIGITS[radix]
+}
+
+// Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L227-L268
+function fromString (str, unsigned, radix, target) {
+  if (str.length === 0) {
+    return copy(ZERO, target)
+  }
+  if (typeof unsigned === 'object') {
+    target = unsigned
+    unsigned = false
+    radix = undefined
+  } else if (typeof unsigned === 'number' || typeof radix === 'boolean') {
+    return fromString(str, radix, unsigned, target)
+  }
+  if (target === null || target === undefined) {
+    target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
+  }
+  if (str === 'NaN' || str === 'Infinity' || str === '+Infinity' || str === '-Infinity') {
+    throw new Error(`Input "${str}" is not supported by longfn.`)
+  }
+  str = str.trim()
+  const p = str.indexOf('-')
+  if (p > 0) {
+    throw new Error(`Input "${str}" contains hyphen at unexpected position ${p}`)
+  }
+  const negate = p === 0
+  if (negate) {
+    if (unsigned) {
+      throw new Error(`Input "${str}" is marked as negative though it is supposed to be unsigned.`)
+    }
+    str = str.substr(1)
+  }
+  if (radix === undefined || radix === 0 || radix === false) {
+    if (/^0x/i.test(str)) {
+      str = str.substr(2)
+      radix = 16
+    } else if (/^0/.test(str)) {
+      throw new Error(`If no radix is specified, input "${str}" should not start with a 0 as a it is an unclear state in JavaScript`)
+    } else {
+      radix = 10
+    }
+  } else {
+    if (typeof radix === 'string') {
+      radix = parseInt(radix, 10)
+    }
+    if (radix < 2 || radix > 36) {
+      throw new RangeError(`Radix between 2 and 36 expected, got: ${radix}`)
+    }
+  }
+  const digits = getDigitsByRadix(radix)
+  copy(ZERO, target, true)
+  let numDigits = 0
+  for (; numDigits < str.length; numDigits++) {
+    const byPos = digits[numDigits % digits.length]
+    const char = str[numDigits]
+    if (char === '0') {
+      // zero does nothing
+      continue
+    }
+    const value = byPos[char]
+    if (value === undefined) {
+      break
+    }
+  }
+  for (let digit = 0, pos = numDigits - 1; digit < numDigits; digit++, pos--) {
+    const byPos = digits[digit % digits.length]
+    const char = str[pos]
+    if (char === '0') {
+      // zero does nothing
+      continue
+    }
+    add(target, byPos[char], target)
+  }
+  target.unsigned = !!unsigned
+  if (negate) {
+    neg(target, target)
+  }
+  return target
+}
+
 module.exports = Object.freeze({
   ZERO: ZERO,
   UZERO: UZERO,
@@ -651,6 +814,8 @@ module.exports = Object.freeze({
   fromInt: fromInt,
   toNumber: toNumber,
   toInt: toInt,
+  toString: toString,
   fromNumber: fromNumber,
+  fromString: fromString,
   fromFloat: fromFloat
 })
