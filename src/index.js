@@ -14,7 +14,6 @@ const ZERO = Object.freeze(fromInt(0))
 const UZERO = Object.freeze(fromInt(0, true))
 
 const TMP_COMPARE = fromInt(0)
-const TMP_SUBTRACT = fromInt(0)
 
 const isLE = new Uint16Array(new Uint8Array([0xAA, 0xBB]).buffer)[0] === 0xBBAA
 
@@ -199,9 +198,12 @@ const neg = (function () {
   }
 })()
 
-function sub (long, subtrahend, target) {
-  return add(long, neg(subtrahend, TMP_SUBTRACT), target)
-}
+const sub = (function () {
+  const tmp = fromInt(0)
+  return function sub (long, subtrahend, target) {
+    return add(long, neg(subtrahend, tmp), target)
+  }
+})()
 
 function compare (a, b) {
   if (eq(a, b)) {
