@@ -1,0 +1,8 @@
+/src/**
+/index.js
+/.github/**
+*.test-d.ts
+package-lock.json
+coverage
+.nyc_output
+build
