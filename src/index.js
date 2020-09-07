@@ -136,7 +136,7 @@ function fromBytesLE (source, unsigned, offset, target) {
     return fromBytesLE(source, unsigned, 0, offset)
   }
   if (typeof unsigned === 'number') {
-    return fromBytesLE(source, undefined, unsinged, offset)
+    return fromBytesLE(source, undefined, unsigned, offset)
   }
   if (target === null || target === undefined) {
     target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
@@ -187,7 +187,7 @@ function fromBytesBE (source, unsigned, offset, target) {
     return fromBytesBE(source, unsigned, 0, offset)
   }
   if (typeof unsigned === 'number') {
-    return fromBytesBE(source, undefined, unsinged, offset)
+    return fromBytesBE(source, undefined, unsigned, offset)
   }
   if (target === null || target === undefined) {
     target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
