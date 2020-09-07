@@ -15,9 +15,6 @@ const UZERO = Object.freeze(fromInt(0, true))
 
 const TMP_COMPARE = fromInt(0)
 const TMP_SUBTRACT = fromInt(0)
-const TMP_CONVERT_BUFFER = new ArrayBuffer(8)
-const TMP_CONVERT_FLOAT = new Float64Array(TMP_CONVERT_BUFFER)
-const TMP_CONVERT_INT = new Uint32Array(TMP_CONVERT_BUFFER)
 
 const isLE = new Uint16Array(new Uint8Array([0xAA, 0xBB]).buffer)[0] === 0xBBAA
 
@@ -111,21 +108,34 @@ function isPositive (long) {
   return long.unsigned || long.high >= 0
 }
 
-function fromFloatLE (float, target, unsigned) {
-  TMP_CONVERT_FLOAT[0] = float
-  target.low = TMP_CONVERT_INT[0]
-  target.high = TMP_CONVERT_INT[1]
-  target.unsigned = !!unsigned
-  return target
-}
+const fromFloat = (function () {
+  const buffer = new ArrayBuffer(8)
+  const floatIn = new Float64Array(buffer)
+  const intOut = new Uint32Array(buffer)
 
-function fromFloatBE (float, target, unsigned) {
-  TMP_CONVERT_FLOAT[0] = float
-  target.low = TMP_CONVERT_INT[0]
-  target.high = TMP_CONVERT_INT[1]
-  target.unsigned = !!unsigned
-  return target
-}
+  if (isLE) {
+    return function fromFloatLE (float, target, unsigned) {
+      if (target === null || target === undefined) {
+        target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
+      }
+      floatIn[0] = float
+      target.low = intOut[0]
+      target.high = intOut[1]
+      target.unsigned = !!unsigned
+      return target
+    }
+  }
+  return function fromFloatBE (float, target, unsigned) {
+    if (target === null || target === undefined) {
+      target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
+    }
+    floatIn[0] = float
+    target.low = intOut[1]
+    target.high = intOut[0]
+    target.unsigned = !!unsigned
+    return target
+  }
+})()
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L808-L843
 function add (long, addend, target) {
@@ -635,5 +645,5 @@ module.exports = Object.freeze({
   toNumber: toNumber,
   toInt: toInt,
   fromNumber: fromNumber,
-  fromFloat: isLE ? fromFloatLE : fromFloatBE
+  fromFloat: fromFloat
 })
