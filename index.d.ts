@@ -31,17 +31,67 @@ declare namespace longfn {
 
   function fromFloat (float: number, unsigned: true): IULong
   function fromFloat (float: number, unsigned?: false): ISLong
+  type RADIX =
+    2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+    10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 |
+    20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 |
+    30 | 31 | 32 | 33 | 34 | 35 | 36 |
+    '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' |
+    '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' |
+    '20' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' |
+    '30' | '31' | '32' | '33' | '34' | '35' | '36'
+  
+  type falsish = null | undefined | 0 | ''
+  type truish = 1
+  type truey = truish | true
+  type falsey = falsish | false
+
   function fromInt (number: number, unsigned: true, target?: ILongLike): IULong
   function fromInt (number: number, unsigned?: false, target?: ILongLike): ISLong
   function fromNumber (value: number, unsigned: true, target?: ILongLike): IULong
   function fromNumber (value: number, unsigned?: false, target?: ILongLike): ISLong
+  function fromString (input: string, unsigned?: falsey, target?: ILongLike): ISLong
+  function fromString (input: string, unsigned: truey, target?: ILongLike): IULong
+  function fromString (input: string, unsigned: truey, radix: RADIX, target?: ILongLike): IULong
+  function fromString (input: string, unsigned: falsey, radix: RADIX, target?: ILongLike): ISLong
+  function fromString (input: string, radix: RADIX, unsigned: true, target?: ILongLike): IULong
+  function fromString (input: string, radix: RADIX, unsigned: false, target?: ILongLike): ISLong
   function toNumber (long: ILong): number
   function toInt (long: ILong): number
 
-  // function toBytes (long: ILong, unsigned: boolean, target: Uint8Array): Uint8Array
-  // function toBytesBE (long: ILong, unsigned: boolean, target: Uint8Array): Uint8Array
-  // function toBytesLE (long: ILong, unsigned: boolean, target: Uint8Array): Uint8Array
-  // function toString (long: ILong, unsigned: boolean, radix?: number): string
+  function toBytes (long: ILong): Uint8Array
+  function toBytes (long: ILong, offset: number): Uint8Array
+  function toBytes <TTarget extends ArrayBufferView> (long: ILong, target: TTarget): TTarget
+  function toBytes <TTarget extends ArrayBufferView> (long: ILong, offset: number, target: TTarget): TTarget
+  function toBytes <TTarget extends ArrayBufferView> (long: ILong, target: TTarget, offset: number): TTarget
+  function toBytesLE (long: ILong): Uint8Array
+  function toBytesLE (long: ILong, offset: number): Uint8Array
+  function toBytesLE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget): TTarget
+  function toBytesLE <TTarget extends ArrayBufferView> (long: ILong, offset: number, target: TTarget): TTarget
+  function toBytesLE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget, offset: number): TTarget
+  function toBytesBE (long: ILong): Uint8Array
+  function toBytesBE (long: ILong, offset: number): Uint8Array
+  function toBytesBE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget): TTarget
+  function toBytesBE <TTarget extends ArrayBufferView> (long: ILong, offset: number, target: TTarget): TTarget
+  function toBytesBE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget, offset: number): TTarget
+  function fromValue (value: string | number | ILong, unsigned: false, target?: ILongLike): ISLong
+  function fromValue (value: string | number | ILong, unsigned: true, target?: ILongLike): IULong
+  function fromValue (value: string | number | ISLong, unsigned: null | undefined, target?: ILongLike): ISLong
+  function fromValue (value: string | number | IULong, unsigned: null | undefined, target?: ILongLike): IULong
+  function fromBytes (bytes: ArrayBufferView, unsigned: falsey, target?: ILongLike): ISLong
+  function fromBytes (bytes: ArrayBufferView, unsigned: truey, target?: ILongLike): IULong
+  function fromBytes (bytes: ArrayBufferView, unsigned: falsey, offset: number, target?: ILongLike): ISLong
+  function fromBytes (bytes: ArrayBufferView, unsigned: truey, offset: number, target?: ILongLike): IULong
+  function fromBytesLE (bytes: ArrayBufferView, unsigned: falsey, target?: ILongLike): ISLong
+  function fromBytesLE (bytes: ArrayBufferView, unsigned: truey, target?: ILongLike): IULong
+  function fromBytesLE (bytes: ArrayBufferView, unsigned: falsey, offset: number, target?: ILongLike): ISLong
+  function fromBytesLE (bytes: ArrayBufferView, unsigned: truey, offset: number, target?: ILongLike): IULong
+  function fromBytesBE (bytes: ArrayBufferView, unsigned: falsey, target?: ILongLike): ISLong
+  function fromBytesBE (bytes: ArrayBufferView, unsigned: truey, target?: ILongLike): IULong
+  function fromBytesBE (bytes: ArrayBufferView, unsigned: falsey, offset: number, target?: ILongLike): ISLong
+  function fromBytesBE (bytes: ArrayBufferView, unsigned: truey, offset: number, target?: ILongLike): IULong
+
+  function toString (long: ILong, radix?: number): string
 
   function isEven (long: ILong): boolean
   function isNegative (long: ILong): boolean
