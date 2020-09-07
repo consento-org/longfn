@@ -21,6 +21,15 @@ const mod = long.mod
 const toNumber = long.toNumber
 const fromInt = long.fromInt
 const fromNumber = long.fromNumber
+const fromBits = long.fromBits
+const fromString = long.fromString
+const toString = long.toString
+const fromBytes = long.fromBytes
+const toBytes = long.toBytes
+const fromBytesBE = long.fromBytesBE
+const fromBytesLE = long.fromBytesLE
+const toBytesBE = long.toBytesBE
+const toBytesLE = long.toBytesLE
 const lt = long.lt
 const gt = long.gt
 const ge = long.ge
@@ -28,6 +37,7 @@ const le = long.le
 const fromFloat = long.fromFloat
 const rotl = long.rotl
 const rotr = long.rotr
+const copy = long.copy
 
 const verbose = process.env.TEST_VERBOSE
 const TMP = fromInt(0, false)
@@ -1514,6 +1524,9 @@ test('sub', function (t) {
   t.end()
 })
 
+/**
+ * The following test have been adapted/cleaned/extended from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/tests/index.js
+ */
 test('from number', function (t) {
   t.deepEquals(fromNumber(1, false), { low: 1, high: 0, unsigned: false }, verbose && 'fromNumber(1, false)')
   t.deepEquals(fromNumber(-1, false), { low: -1, high: -1, unsigned: false }, verbose && 'fromNumber(-1, false)')
@@ -1533,193 +1546,348 @@ test('from float', function (t) {
   t.end()
 })
 
-/*
-function testBasic() {
-  var longVal = new Long(0xFFFFFFFF, 0x7FFFFFFF);
-  assert.strictEqual(longVal.toNumber(), 9223372036854775807);
-  assert.strictEqual(longVal.toString(), "9223372036854775807");
+test('basic string conversion', function (t) {
+  ;[
+    { n: fromInt(0), 2: '0', 3: '0', 8: '0', 16: '0', 21: '0', 36: '0' },
+    { n: fromInt(1), 2: '1', 3: '1', 8: '1', 16: '1', 21: '1', 36: '1' },
+    { n: fromInt(-1), 2: '-1', 3: '-1', 8: '-1', 16: '-1', 21: '-1', 36: '-1' },
+    { n: fromInt(1, true), 2: '1', 3: '1', 8: '1', 16: '1', 21: '1', 36: '1' },
+    { n: fromInt(2), 2: '10', 3: '2', 8: '2' },
+    { n: fromInt(-2), 2: '-10', 3: '-2' },
+    { n: fromInt(23), 2: '10111', 3: '212', 8: '27', 16: '17', 21: '12', 36: 'n' },
+    { n: fromInt(-23), 2: '-10111', 3: '-212', 8: '-27', 16: '-17', 21: '-12', 36: '-n' },
+    {
+      n: fromInt(-1, true),
+      2: '1111111111111111111111111111111111111111111111111111111111111111',
+      3: '11112220022122120101211020120210210211220',
+      8: '1777777777777777777777',
+      16: 'ffffffffffffffff',
+      21: '5e8g4ggg7g56dif',
+      36: '3w5e11264sgsf'
+    },
+    {
+      n: fromInt(0x7fffffff),
+      2: '1111111111111111111111111111111',
+      3: '12112122212110202101',
+      8: '17777777777',
+      16: '7fffffff',
+      21: '140h2d91',
+      36: 'zik0zj'
+    },
+    { n: fromInt(0x7ffffff), 2: '111111111111111111111111111' },
+    { n: fromInt(0x7fffffff, true), 2: '1111111111111111111111111111111' },
+    { n: fromNumber(0x80000000), 2: '10000000000000000000000000000000' },
+    { n: fromNumber(0x80000000, true), 2: '10000000000000000000000000000000' },
+    { n: long.MAX_VALUE, 2: '111111111111111111111111111111111111111111111111111111111111111' },
+    { n: long.MIN_VALUE, 2: '-1000000000000000000000000000000000000000000000000000000000000000' },
+    { n: add(long.MAX_VALUE, long.ONE, {}), 2: '-1000000000000000000000000000000000000000000000000000000000000000' },
+    {
+      n: add(copy(long.MAX_VALUE, {}, true), long.UONE, {}),
+      2: '1000000000000000000000000000000000000000000000000000000000000000',
+      16: '8000000000000000',
+      21: '2heiciiie82dh98',
+      36: '1y2p0ij32e8e8'
+    },
+    {
+      n: add(add(copy(long.MAX_VALUE, {}, true), long.UONE, {}), long.UONE, {}),
+      2: '1000000000000000000000000000000000000000000000000000000000000001',
+      16: '8000000000000001',
+      21: '2heiciiie82dh99',
+      36: '1y2p0ij32e8e9'
+    },
+    { n: long.MAX_UNSIGNED_VALUE, 2: '1111111111111111111111111111111111111111111111111111111111111111' }
+  ].forEach(function (test, index) {
+    const n = test.n
+    for (const radix in test) {
+      if (radix === 'n') return
+      t.equals(toString(n, radix), test[radix], verbose && '#' + index + ' - toString(' + toNumber(n) + ', ' + radix.toString() + ') === \'' + test[radix] + '\'')
+      t.deepEqual(fromString(test[radix], n.unsigned, radix), n, '#' + index.toString() + ' - fromString(\'' + test[radix] + '\', ' + n.unsigned + ', ' + radix + ')')
+    }
+  })
+  t.end()
+})
 
-  var longVal2 = Long.fromValue(longVal);
-  assert.strictEqual(longVal2.toNumber(), 9223372036854775807);
-  assert.strictEqual(longVal2.toString(), "9223372036854775807");
-  assert.strictEqual(longVal2.unsigned, longVal.unsigned);
-},
+test('from string', function (t) {
+  t.deepEquals(fromString('1'), fromInt(1), '1')
+  t.deepEquals(fromString('-1'), fromInt(-1), '-1')
+  t.deepEquals(fromString('0xa', true), fromInt(0xa, true), '0xa')
+  t.deepEquals(fromString(' -0xa'), fromInt(-0xa), ' -0xa')
+  t.deepEquals(fromString('1', 3), fromInt(parseInt('1', 3)), '1[3]')
+  t.deepEquals(fromString('123', 3), fromInt(parseInt('123', 3)), '123[3]')
+  t.deepEquals(fromString('0xf'), fromInt(0xf), '0xf')
+  t.deepEquals(fromString('0xff'), fromInt(0xff), '0xff')
+  t.deepEquals(fromString('0xfff'), fromInt(0xfff), '0xfff')
+  t.deepEquals(fromString('0xffff'), fromInt(0xffff), '0xffff')
+  t.deepEquals(fromString('0xfffff'), fromInt(0xfffff), '0xfffff')
+  t.deepEquals(fromString('0xffffff'), fromNumber(0xffffff), '0xffffff')
+  t.deepEquals(fromString('0xfffffff'), fromNumber(0xfffffff), '0xfffffff')
+  t.deepEquals(fromString('0xffffffff'), fromNumber(0xffffffff), '0xffffffff')
+  t.deepEquals(fromString('0xfffffffff'), fromNumber(0xfffffffff), '0xfffffffff')
+  t.deepEquals(fromString('9223372036854775807'), fromBits(-1, 2147483647), '9223372036854775807')
+  t.end()
+})
 
-function testIsLong() {
-  var longVal = new Long(0xFFFFFFFF, 0x7FFFFFFF);
-  assert.strictEqual(Long.isLong(longVal), true);
-  longVal = {"__isLong__": true};
-  assert.strictEqual(Long.isLong(longVal), true);
-},
+test('Basic', function (t) {
+  const longVal = fromBits(0xFFFFFFFF, 0x7FFFFFFF)
+  t.strictEqual(toNumber(longVal), 9223372036854775807)
+  t.strictEqual(toString(longVal), '9223372036854775807')
 
-function testToString() {
-  var longVal = Long.fromBits(0xFFFFFFFF, 0xFFFFFFFF, true);
+  const longVal2 = copy(longVal, {})
+  t.strictEqual(toNumber(longVal2), 9223372036854775807)
+  t.strictEqual(toString(longVal2), '9223372036854775807')
+  t.strictEqual(longVal2.unsigned, longVal.unsigned)
+  t.end()
+})
+
+test('toString', function (t) {
+  const longVal = fromBits(0xFFFFFFFF, 0xFFFFFFFF, true)
   // #10
-  assert.strictEqual(longVal.toString(16), "ffffffffffffffff");
-  assert.strictEqual(longVal.toString(10), "18446744073709551615");
-  assert.strictEqual(longVal.toString(8), "1777777777777777777777");
+  t.strictEqual(toString(longVal, 16), 'ffffffffffffffff')
+  t.strictEqual(toString(longVal, 10), '18446744073709551615')
+  t.strictEqual(toString(longVal, 8), '1777777777777777777777')
   // #7, obviously wrong in goog.math.Long
-  assert.strictEqual(Long.fromString("zzzzzz", 36).toString(36), "zzzzzz");
-  assert.strictEqual(Long.fromString("-zzzzzz", 36).toString(36), "-zzzzzz");
-},
+  t.strictEqual(toString(fromString('zzzzzz', 36), 36), 'zzzzzz')
+  t.strictEqual(toString(fromString('-zzzzzz', 36), 36), '-zzzzzz')
+  t.end()
+})
 
-function testToBytes() {
-  var longVal = Long.fromBits(0x01234567, 0x12345678);
-  assert.deepEqual(longVal.toBytesBE(), [
-      0x12, 0x34, 0x56, 0x78,
-      0x01, 0x23, 0x45, 0x67
-  ]);
-  assert.deepEqual(longVal.toBytesLE(), [
-      0x67, 0x45, 0x23, 0x01,
-      0x78, 0x56, 0x34, 0x12
-  ]);
-},
+const BE = new Uint8Array([
+  0x12, 0x34, 0x56, 0x78,
+  0x01, 0x23, 0x45, 0x67
+])
+const BEPadLeft = new Uint8Array([
+  0, 0,
+  0x12, 0x34, 0x56, 0x78,
+  0x01, 0x23, 0x45, 0x67
+])
+const BEPad = new Uint8Array([
+  0, 0,
+  0x12, 0x34, 0x56, 0x78,
+  0x01, 0x23, 0x45, 0x67,
+  0, 0
+])
+const LE = new Uint8Array([
+  0x67, 0x45, 0x23, 0x01,
+  0x78, 0x56, 0x34, 0x12
+])
+const LEPadLeft = new Uint8Array([
+  0, 0,
+  0x67, 0x45, 0x23, 0x01,
+  0x78, 0x56, 0x34, 0x12
+])
+const LEPad = new Uint8Array([
+  0, 0,
+  0x67, 0x45, 0x23, 0x01,
+  0x78, 0x56, 0x34, 0x12,
+  0, 0
+])
 
-function testFromBytes() {
-  var longVal = Long.fromBits(0x01234567, 0x12345678);
-  var ulongVal = Long.fromBits(0x01234567, 0x12345678, true);
-  assert.deepEqual(Long.fromBytes(longVal.toBytes()), longVal);
-  assert.deepEqual(Long.fromBytes([0x12, 0x34, 0x56, 0x78, 0x01, 0x23, 0x45, 0x67]), longVal);
-  assert.deepEqual(Long.fromBytes([0x12, 0x34, 0x56, 0x78, 0x01, 0x23, 0x45, 0x67], false, false), longVal);
-  assert.deepEqual(Long.fromBytes([0x67, 0x45, 0x23, 0x01, 0x78, 0x56, 0x34, 0x12], false, true), longVal);
-  assert.deepEqual(Long.fromBytes([0x67, 0x45, 0x23, 0x01, 0x78, 0x56, 0x34, 0x12], true, true), ulongVal);
-},
+test('toBytes', function (t) {
+  const longVal = fromBits(0x01234567, 0x12345678)
+  t.deepEqual(toBytesBE(longVal), BE, 'BE')
+  t.deepEqual(toBytesLE(longVal), LE, 'LE')
+  t.deepEqual(toBytesBE(longVal, 2), BEPadLeft, 'BE 2')
+  t.deepEqual(toBytesLE(longVal, 2), LEPadLeft, 'LE 2')
+  const target = new Uint8Array(12)
+  t.equals(toBytesBE(longVal, 2, target), target, 'input is returned')
+  t.deepEqual(target, BEPad, 'BE 2 target')
+  t.equals(toBytesLE(longVal, 2, target), target, 'input is returned')
+  t.deepEqual(target, LEPad, 'LE 2 target')
+  t.equals(toBytesBE(longVal, target, 2), target, 'input is returned')
+  t.deepEqual(target, BEPad, 'BE target 2')
+  t.equals(toBytesLE(longVal, target, 2), target, 'input is returned')
+  t.deepEqual(target, LEPad, 'LE target 2')
+  const target32 = new Uint32Array(3)
+  t.equals(toBytesBE(longVal, target32, 2), target32, 'input is returned')
+  t.deepEqual(new Uint8Array(target32.buffer), BEPad, 'BE uint32 2')
+  t.equals(toBytesLE(longVal, target32, 2), target32, 'input is returned')
+  t.deepEqual(new Uint8Array(target32.buffer), LEPad, 'LE uint32 2')
+  t.end()
+})
 
-function testUnsignedMinMax() {
-  assert.strictEqual(Long.MIN_VALUE.toString(), "-9223372036854775808");
-  assert.strictEqual(Long.MAX_VALUE.toString(), "9223372036854775807");
-  assert.strictEqual(Long.MAX_UNSIGNED_VALUE.toString(), "18446744073709551615");
-},
+test('fromBytes', function (t) {
+  const longVal = fromBits(0x01234567, 0x12345678)
+  const ulongVal = fromBits(0x01234567, 0x12345678, true)
+  const target = {}
+  t.deepEqual(fromBytes(toBytes(longVal)), longVal, 'from/toBytes')
+  t.deepEqual(fromBytes(toBytes(ulongVal), true), ulongVal, 'from/toBytes unsigned')
+  t.deepEqual(fromBytesBE(BE), longVal, 'fromBytesBE')
+  t.deepEqual(fromBytesLE(LE), longVal, 'fromBytesLE')
+  t.deepEqual(fromBytesBE(BEPad, null, 2), longVal, 'fromBytesBE offset=2')
+  t.deepEqual(fromBytesLE(LEPad, null, 2), longVal, 'fromBytesLE offset=2')
+  t.deepEqual(fromBytesBE(BEPad, true, 2), ulongVal, 'fromBytesBE offset=2, unsigned')
+  t.deepEqual(fromBytesLE(LEPad, true, 2), ulongVal, 'fromBytesLE offset=2, unsigned')
+  t.equals(fromBytesBE(BE, null, target), target, 'BE input returned')
+  t.deepEqual(target, longVal, 'BE input filled')
+  t.equals(fromBytesLE(LE, null, target), target, 'LE input returned')
+  t.deepEqual(target, longVal, 'LE input filled')
+  t.end()
+})
 
-function testUnsignedConstructNegint() {
-  var longVal = Long.fromInt(-1, true);
-  assert.strictEqual(longVal.low, -1);
-  assert.strictEqual(longVal.high, -1);
-  assert.strictEqual(longVal.unsigned, true);
-  assert.strictEqual(longVal.toNumber(), 18446744073709551615);
-  assert.strictEqual(longVal.toString(), "18446744073709551615");
-},
+test('unsignedMinMax', function (t) {
+  t.strictEqual(toString(long.MIN_VALUE), '-9223372036854775808')
+  t.strictEqual(toString(long.MAX_VALUE), '9223372036854775807')
+  t.strictEqual(toString(long.MAX_UNSIGNED_VALUE), '18446744073709551615')
+  t.end()
+})
 
-function testUnsignedConstructHighLow() {
-  var longVal = new Long(0xFFFFFFFF, 0xFFFFFFFF, true);
-  assert.strictEqual(longVal.low, -1);
-  assert.strictEqual(longVal.high, -1);
-  assert.strictEqual(longVal.unsigned, true);
-  assert.strictEqual(longVal.toNumber(), 18446744073709551615);
-  assert.strictEqual(longVal.toString(), "18446744073709551615");
-},
+test('unsignedConstructNegint', function (t) {
+  const longVal = fromInt(-1, true)
+  t.strictEqual(longVal.low, -1)
+  t.strictEqual(longVal.high, -1)
+  t.strictEqual(longVal.unsigned, true)
+  t.strictEqual(toNumber(longVal), 18446744073709551615)
+  t.strictEqual(toString(longVal), '18446744073709551615')
+  t.end()
+})
 
-function testUnsignedConstructNumber() {
-  var longVal = Long.fromNumber(0xFFFFFFFFFFFFFFFF, true);
-  assert.strictEqual(longVal.low, -1);
-  assert.strictEqual(longVal.high, -1);
-  assert.strictEqual(longVal.unsigned, true);
-  assert.strictEqual(longVal.toNumber(), 18446744073709551615);
-  assert.strictEqual(longVal.toString(), "18446744073709551615");
-},
+test('unsignedConstructHighLow', function (t) {
+  const longVal = fromBits(0xFFFFFFFF, 0xFFFFFFFF, true)
+  t.strictEqual(longVal.low, -1)
+  t.strictEqual(longVal.high, -1)
+  t.strictEqual(longVal.unsigned, true)
+  t.strictEqual(toNumber(longVal), 18446744073709551615)
+  t.strictEqual(toString(longVal), '18446744073709551615')
+  t.end()
+})
 
-function testUnsignedToSignedUnsigned() {
-  var longVal = Long.fromNumber(-1, false);
-  assert.strictEqual(longVal.toNumber(), -1);
-  longVal = longVal.toUnsigned();
-  assert.strictEqual(longVal.toNumber(), 0xFFFFFFFFFFFFFFFF);
-  assert.strictEqual(longVal.toString(16), 'ffffffffffffffff');
-  longVal = longVal.toSigned();
-  assert.strictEqual(longVal.toNumber(), -1);
-},
+test('unsignedConstructNumber', function (t) {
+  const longVal = fromNumber(0xFFFFFFFFFFFFFFFF, true)
+  t.strictEqual(longVal.low, -1)
+  t.strictEqual(longVal.high, -1)
+  t.strictEqual(longVal.unsigned, true)
+  t.strictEqual(toNumber(longVal), 18446744073709551615)
+  t.strictEqual(toString(longVal), '18446744073709551615')
+  t.end()
+})
 
-function testUnsignedMaxSubMaxSigned() {
-  var longVal = Long.MAX_UNSIGNED_VALUE.subtract(Long.MAX_VALUE).subtract(Long.ONE);
-  assert.strictEqual(longVal.toNumber(), Long.MAX_VALUE.toNumber());
-  assert.strictEqual(longVal.toString(), Long.MAX_VALUE.toString());
-},
+test('unsignedToSignedUnsigned', function (t) {
+  const longVal = fromNumber(-1, false)
+  t.strictEqual(toNumber(longVal), -1)
+  longVal.unsigned = true
+  t.strictEqual(toNumber(longVal), 0xFFFFFFFFFFFFFFFF)
+  t.strictEqual(toString(longVal, 16), 'ffffffffffffffff')
+  longVal.unsigned = false
+  t.strictEqual(toNumber(longVal), -1)
+  t.end()
+})
 
-function testUnsignedMaxSubMax() {
-  var longVal = Long.MAX_UNSIGNED_VALUE.subtract(Long.MAX_UNSIGNED_VALUE);
-  assert.strictEqual(longVal.low, 0);
-  assert.strictEqual(longVal.high, 0);
-  assert.strictEqual(longVal.unsigned, true);
-  assert.strictEqual(longVal.toNumber(), 0);
-  assert.strictEqual(longVal.toString(), "0");
-},
+test('unsignedMaxSubMaxSigned', function (t) {
+  const longVal = sub(sub(long.MAX_UNSIGNED_VALUE, long.MAX_VALUE, {}), long.ONE, {})
+  t.strictEqual(toNumber(longVal), toNumber(long.MAX_VALUE))
+  t.strictEqual(toString(longVal), toString(long.MAX_VALUE))
+  t.end()
+})
 
-function testUnsignedZeroSubSigned() {
-  var longVal = Long.fromInt(0, true).add(Long.fromInt(-1, false));
-  assert.strictEqual(longVal.low, -1);
-  assert.strictEqual(longVal.high, -1);
-  assert.strictEqual(longVal.unsigned, true);
-  assert.strictEqual(longVal.toNumber(), 18446744073709551615);
-  assert.strictEqual(longVal.toString(), "18446744073709551615");
-},
+test('unsignedMaxSubMax', function (t) {
+  const longVal = sub(long.MAX_UNSIGNED_VALUE, long.MAX_UNSIGNED_VALUE, {})
+  t.strictEqual(longVal.low, 0)
+  t.strictEqual(longVal.high, 0)
+  t.strictEqual(longVal.unsigned, true)
+  t.strictEqual(toNumber(longVal), 0)
+  t.strictEqual(toString(longVal), '0')
+  t.end()
+})
 
-function testUnsignedMaxDivMaxSigned() {
-  var longVal = Long.MAX_UNSIGNED_VALUE.div(Long.MAX_VALUE);
-  assert.strictEqual(longVal.toNumber(), 2);
-  assert.strictEqual(longVal.toString(), "2");
-},
+test('unsignedZeroSubSigned', function (t) {
+  const longVal = add(fromInt(0, true), fromInt(-1, false), {})
+  t.strictEqual(longVal.low, -1)
+  t.strictEqual(longVal.high, -1)
+  t.strictEqual(longVal.unsigned, true)
+  t.strictEqual(toNumber(longVal), 18446744073709551615)
+  t.strictEqual(toString(longVal), '18446744073709551615')
+  t.end()
+})
 
-function testUnsignedDivMaxUnsigned() {
-  var longVal = Long.MAX_UNSIGNED_VALUE;
-  assert.strictEqual(longVal.div(longVal).toString(), '1');
-},
+test('unsignedMaxDivMaxSigned', function (t) {
+  const longVal = div(long.MAX_UNSIGNED_VALUE, long.MAX_VALUE, {})
+  t.strictEqual(toNumber(longVal), 2)
+  t.strictEqual(toString(longVal), '2')
+  t.end()
+})
 
-function testUnsignedDivNegSigned() {
-  var a = Long.MAX_UNSIGNED_VALUE;
-  var b = Long.fromInt(-2);
-  assert.strictEqual(b.toUnsigned().toString(), Long.MAX_UNSIGNED_VALUE.sub(1).toString());
-  var longVal = a.div(b);
-  assert.strictEqual(longVal.toString(), '1');
-},
+test('unsignedDivMaxUnsigned', function (t) {
+  const longVal = long.MAX_UNSIGNED_VALUE
+  t.equal(toString(div(longVal, longVal, {})), '1')
+  t.end()
+})
 
-function testUnsignedMinSignedDivOne() {
-  var longVal = Long.MIN_VALUE.div(Long.ONE);
-  assert.strictEqual(longVal.toString(), Long.MIN_VALUE.toString());
-},
+test('unsignedDivNegSigned', function (t) {
+  const a = long.MAX_UNSIGNED_VALUE
+  const b = long.fromInt(-2)
+  t.equal(toString(copy(b, {}, true)), toString(sub(long.MAX_UNSIGNED_VALUE, long.ONE, {})))
+  const longVal = div(a, b, {})
+  t.equal(toString(longVal), '1')
+  t.end()
+})
 
-function testUnsignedMsbUnsigned() {
-  var longVal = Long.UONE.shiftLeft(63);
-  assert.strictEqual(longVal.notEquals(Long.MIN_VALUE), true);
-  assert.strictEqual(longVal.toString(), "9223372036854775808");
-  assert.strictEqual(Long.fromString("9223372036854775808", true).toString(), "9223372036854775808");
-},
+test('unsignedMinSignedDivOne', function (t) {
+  const longVal = div(long.MIN_VALUE, long.ONE, {})
+  t.equals(toString(longVal), toString(long.MIN_VALUE))
+  t.end()
+})
 
-function testIssue31() {
-  var a = new Long(0, 8, true);
-  var b = Long.fromNumber(2656901066, true);
-  assert.strictEqual(a.unsigned, true);
-  assert.strictEqual(b.unsigned, true);
-  var x = a.div(b);
-  assert.strictEqual(x.toString(), '12');
-  assert.strictEqual(x.unsigned, true);
-},
-*/
-/*
-TODO!
+test('unsignedMsbUnsigned', function (t) {
+  const longVal = shl(long.UONE, 63, {})
+  t.ok(long.ne(longVal, long.MIN_VALUE))
+  t.equals(toString(longVal), '9223372036854775808')
+  t.equals(toString(fromString('9223372036854775808', true)), '9223372036854775808')
+  t.end()
+})
+
+test('issue#31', function (t) {
+  const a = fromBits(0, 8, true)
+  const b = fromNumber(2656901066, true)
+  t.strictEqual(a.unsigned, true)
+  t.strictEqual(b.unsigned, true)
+  const x = div(a, b, {})
+  t.strictEqual(toNumber(x), 12)
+  t.strictEqual(x.unsigned, true)
+  t.end()
+})
+
+function longHex (long) {
+  return {
+    low: '0x' + long.low.toString(16).toUpperCase(),
+    high: '0x' + long.high.toString(16).toUpperCase(),
+    unsigned: long.unsigned
+  }
+}
 test('rotateLeft', function (t) {
-  const longVal = { low: 0x01234567, high: 0x89ABCDEF, unsigned: false }
-  const longValL = { low: 0x12345678, high: 0x9ABCDEF0, unsigned: false }
-  const longValR = { low: 0xF0123456, high: 0x789ABCDE, unsigned: false }
-  const longValS = { low: 0x89ABCDEF, high: 0x01234567, unsigned: false }
+  const longVal = fromBits(0x01234567, 0x89ABCDEF)
+  const longValL = fromBits(0x12345678, 0x9ABCDEF0)
+  const longValR = fromBits(0xF0123456, 0x789ABCDE)
+  const longValS = fromBits(0x89ABCDEF, 0x01234567)
   // little rotate
-  t.deepEquals(rotl(longVal, 4, {}), longValL)
+  t.deepEquals(longHex(rotl(longVal, 4, fromInt(0))), longHex(longValL))
   // big rotate
-  t.deepEquals(rotl(longVal, 60, {}), longValR)
+  t.deepEquals(longHex(rotl(longVal, 60, {})), longHex(longValR))
   // swap
-  t.deepEquals(rotl(longVal, 32, {}), longValS)
+  t.deepEquals(longHex(rotl(longVal, 32, {})), longHex(longValS))
   t.end()
 })
 
-test.only('rotateRight', function (t) {
-  const longVal = { low: 0x01234567, high: 0x89ABCDEF, unsigned: false }
-  const longValL = { low: 0x12345678, high: 0x9ABCDEF0, unsigned: false }
-  const longValR = { low: 0xF0123456, high: 0x789ABCDE, unsigned: false }
-  const longValS = { low: 0x89ABCDEF, high: 0x01234567, unsigned: false }
+test('rotateRight', function (t) {
+  const longVal = fromBits(0x01234567, 0x89ABCDEF)
+  const longValL = fromBits(0x12345678, 0x9ABCDEF0)
+  const longValR = fromBits(0xF0123456, 0x789ABCDE)
+  const longValS = fromBits(0x89ABCDEF, 0x01234567)
   // little rotate
-  t.deepEquals(rotr(longVal, 4, {}), longValR)
+  t.deepEquals(longHex(rotr(longVal, 4, {})), longHex(longValR))
   // big rotate
-  t.deepEquals(rotr(longVal, 60, {}), longValL)
+  t.deepEquals(longHex(rotr(longVal, 60, {})), longHex(longValL))
   // swap
-  t.deepEquals(rotr(longVal, 32, {}), longValS)
+  t.deepEquals(longHex(rotr(longVal, 32, {})), longHex(longValS))
   t.end()
 })
-*/
+
+test('unsigned equality', function (t) {
+  t.ok(long.eq(fromInt(0), fromInt(0, true)))
+  t.ok(long.eq(fromNumber(0x100000000), fromNumber(0x100000000, true)))
+  const ulongMax = copy(long.MAX_VALUE, {}, true)
+  t.ok(
+    long.ne(add(long.MAX_VALUE, long.ONE, {}),
+      add(ulongMax, long.ONE, {}))
+  )
+  t.end()
+})
