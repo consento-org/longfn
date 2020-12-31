@@ -89,7 +89,7 @@ const fromBigInt = typeof BigInt === 'undefined'
 // Ported from: https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L161-L178
 function fromNumber (value, unsigned, target) {
   if (target === null || target === undefined) {
-    target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
+    target = { low: 0 | 0, high: 0 | 0, unsigned: false }
   }
   if (isNaN(value)) {
     return copy(unsigned ? UZERO : ZERO, target)
