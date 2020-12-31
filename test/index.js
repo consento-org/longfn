@@ -1708,10 +1708,19 @@ test('toString', function (t) {
   t.end()
 })
 
-const BE = new Uint8Array([
+const SOURCE = new Uint8Array([
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00,
   0x12, 0x34, 0x56, 0x78,
-  0x01, 0x23, 0x45, 0x67
+  0x01, 0x23, 0x45, 0x67,
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00
 ])
+const BE = new Uint8Array(SOURCE.buffer, 16, 8)
 const BEPadLeft = new Uint8Array([
   0, 0,
   0x12, 0x34, 0x56, 0x78,
@@ -1756,9 +1765,9 @@ test('toBytes', function (t) {
   t.deepEqual(target, LEPad, 'LE target 2')
   const target32 = new Uint32Array(3)
   t.equals(toBytesBE(longVal, target32, 2), target32, 'input is returned')
-  t.deepEqual(new Uint8Array(target32.buffer), BEPad, 'BE uint32 2')
+  t.deepEqual(new Uint8Array(target32.buffer, target32.byteOffset, target32.byteLength), BEPad, 'BE uint32 2')
   t.equals(toBytesLE(longVal, target32, 2), target32, 'input is returned')
-  t.deepEqual(new Uint8Array(target32.buffer), LEPad, 'LE uint32 2')
+  t.deepEqual(new Uint8Array(target32.buffer, target32.byteOffset, target32.byteLength), LEPad, 'LE uint32 2')
   t.end()
 })
 
@@ -1806,6 +1815,8 @@ test('fromBytes', function (t) {
   t.deepEqual(fromBytes(toBytes(ulongVal), true), ulongVal, 'from/toBytes unsigned')
   t.deepEqual(fromBytesBE(BE), longVal, 'fromBytesBE')
   t.deepEqual(fromBytesLE(LE), longVal, 'fromBytesLE')
+  t.deepEqual(fromBytesBE(new Uint16Array(BE.buffer, BE.byteOffset)), longVal, 'fromBytesBE uint32')
+  t.deepEqual(fromBytesLE(new Uint16Array(LE.buffer, LE.byteOffset)), longVal, 'fromBytesLE uint32')
   t.deepEqual(fromBytesBE(BEPad, null, 2), longVal, 'fromBytesBE offset=2')
   t.deepEqual(fromBytesLE(LEPad, null, 2), longVal, 'fromBytesLE offset=2')
   t.deepEqual(fromBytesBE(BEPad, true, 2), ulongVal, 'fromBytesBE offset=2, unsigned')

@@ -164,10 +164,14 @@ function toBytesLE (long, offset, target) {
     return toBytesLE(long, target, offset)
   }
   const i = offset || 0
-  target = target || new Uint8Array(i + 8)
-  let out = target
-  if (out.buffer && !(target instanceof Uint8Array)) {
-    out = new Uint8Array(target.buffer)
+  let out
+  if (!target) {
+    target = new Uint8Array(i + 8)
+    out = target
+  } else if (!(target instanceof Uint8Array)) {
+    out = new Uint8Array(target.buffer, target.byteOffset, target.byteLength)
+  } else {
+    out = target
   }
   const hi = long.high
   const lo = long.low
@@ -193,7 +197,7 @@ function fromBytesLE (source, unsigned, offset, target) {
     target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
   }
   if (!(source instanceof Uint8Array)) {
-    source = new Uint8Array(source.buffer)
+    source = new Uint8Array(source.buffer, source.byteOffset, source.byteLength)
   }
   const i = offset || 0
   return fromBits(
@@ -217,10 +221,14 @@ function toBytesBE (long, offset, target) {
     return toBytesBE(long, target, offset)
   }
   const i = offset || 0
-  target = target || new Uint8Array(i + 8)
-  let out = target
-  if (out.buffer && !(target instanceof Uint8Array)) {
-    out = new Uint8Array(target.buffer)
+  let out
+  if (!target) {
+    target = new Uint8Array(i + 8)
+    out = target
+  } else if (!(target instanceof Uint8Array)) {
+    out = new Uint8Array(target.buffer, target.byteOffset, target.byteLength)
+  } else {
+    out = target
   }
   const hi = long.high
   const lo = long.low
@@ -246,7 +254,7 @@ function fromBytesBE (source, unsigned, offset, target) {
     target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
   }
   if (!(source instanceof Uint8Array)) {
-    source = new Uint8Array(source.buffer)
+    source = new Uint8Array(source.buffer, source.byteOffset, source.byteLength)
   }
   const i = offset || 0
   return fromBits(
