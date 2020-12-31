@@ -75,14 +75,32 @@ function fromNumber (value, unsigned, target) {
 }
 
 function fromValue (value, unsigned, target) {
-  if (typeof unsigned === 'object') {
-    return fromValue(value, null, target)
+  if (typeof unsigned === 'object' && unsigned !== null) {
+    return fromValue(value, undefined, unsigned)
   }
   if (typeof value === 'number') {
     return fromNumber(value, unsigned, target)
   }
   if (typeof value === 'string') {
-    return fromString(value, unsigned, target)
+    return fromString(value, unsigned, undefined, target)
+  }
+  if (value === null || value === undefined || value === false) {
+    return copy(
+      unsigned ? UZERO : ZERO,
+      target || fromInt(0)
+    )
+  }
+  if (value === true) {
+    return copy(
+      unsigned ? UONE : ONE,
+      target || fromInt(0)
+    )
+  }
+  if (value.buffer instanceof ArrayBuffer) {
+    return fromBytes(value, unsigned, target)
+  }
+  if (Array.isArray(value)) {
+    return fromBits(value[0], value[1], typeof unsigned === 'boolean' ? unsigned : value[2], target)
   }
   return fromBits(value.low, value.high, typeof unsigned === 'boolean' ? unsigned : value.unsigned, target)
 }
@@ -144,6 +162,8 @@ function fromBytesLE (source, unsigned, offset, target) {
     target
   )
 }
+
+const fromBytes = isLE ? fromBytesLE : fromBytesBE
 
 function toBytesBE (long, offset, target) {
   if (offset && offset.buffer) {
@@ -882,7 +902,7 @@ module.exports = Object.freeze({
   toBytesLE: toBytesLE,
   toBytesBE: toBytesBE,
   fromValue: fromValue,
-  fromBytes: isLE ? fromBytesLE : fromBytesBE,
+  fromBytes: fromBytes,
   fromBytesLE: fromBytesLE,
   fromBytesBE: fromBytesBE,
   fromNumber: fromNumber,

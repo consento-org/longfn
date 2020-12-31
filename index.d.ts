@@ -75,10 +75,13 @@ declare namespace longfn {
   function toBytesBE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget): TTarget
   function toBytesBE <TTarget extends ArrayBufferView> (long: ILong, offset: number, target: TTarget): TTarget
   function toBytesBE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget, offset: number): TTarget
-  function fromValue (value: string | number | ILong, unsigned: false, target?: ILongLike): ISLong
-  function fromValue (value: string | number | ILong, unsigned: true, target?: ILongLike): IULong
-  function fromValue (value: string | number | ISLong, unsigned: null | undefined, target?: ILongLike): ISLong
-  function fromValue (value: string | number | IULong, unsigned: null | undefined, target?: ILongLike): IULong
+  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | ILong, target?: ILongLike): ISLong
+  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | ISLong, target?: ILongLike): ISLong
+  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | IULong, target?: ILongLike): IULong
+  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | ILong, unsigned: falsey, target?: ILongLike): ISLong
+  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | ILong, unsigned: truey, target?: ILongLike): IULong
+  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | ISLong, unsigned: null | undefined, target?: ILongLike): ISLong
+  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | IULong, unsigned: null | undefined, target?: ILongLike): IULong
   function fromBytes (bytes: ArrayBufferView, unsigned: falsey, target?: ILongLike): ISLong
   function fromBytes (bytes: ArrayBufferView, unsigned: truey, target?: ILongLike): IULong
   function fromBytes (bytes: ArrayBufferView, unsigned: falsey, offset: number, target?: ILongLike): ISLong

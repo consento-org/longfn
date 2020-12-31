@@ -1,3 +1,4 @@
+const Long = require('long')
 const test = require('tape')
 const long = require('..')
 const add = long.add
@@ -30,6 +31,7 @@ const fromBytesBE = long.fromBytesBE
 const fromBytesLE = long.fromBytesLE
 const toBytesBE = long.toBytesBE
 const toBytesLE = long.toBytesLE
+const fromValue = long.fromValue
 const lt = long.lt
 const gt = long.gt
 const ge = long.ge
@@ -1707,6 +1709,37 @@ test('toBytes', function (t) {
   t.equals(toBytesLE(longVal, target32, 2), target32, 'input is returned')
   t.deepEqual(new Uint8Array(target32.buffer), LEPad, 'LE uint32 2')
   t.end()
+})
+
+test('fromValue', function (t) {
+  testValue(1, fromNumber(1))
+  testValue(-1, fromNumber(-1))
+  testValue(1, fromNumber(1, true), true)
+  testValue('1', fromString('1'))
+  testValue('0xa', fromString('0xa'))
+  testValue(true, long.ONE)
+  testValue(true, long.UONE, true)
+  testValue(false, long.ZERO)
+  testValue(null, long.ZERO)
+  testValue(undefined, long.ZERO)
+  testValue(false, long.UZERO, true)
+  testValue(null, long.UZERO, true)
+  testValue(undefined, long.UZERO, true)
+  testValue(toBytes(fromInt(0xa)), fromInt(0xa))
+  testValue([0x01234567, 0x12345678], fromBits(0x01234567, 0x12345678))
+  testValue([0x01234567, 0x12345678], fromBits(0x01234567, 0x12345678, true), true)
+  testValue(new Long(0x01234567, 0x12345678), fromBits(0x01234567, 0x12345678))
+  testValue(new Long(0x01234567, 0x12345678, true), fromBits(0x01234567, 0x12345678, true))
+  t.end()
+
+  function testValue (value, expected, unsigned) {
+    t.deepEqual(fromValue(value, unsigned), expected, 'fromValue(' + JSON.stringify(value) + ', ' + !!unsigned + ')')
+    const target = {}
+    if (!unsigned) {
+      t.equals(fromValue(value, target), target, 'fromValue(' + JSON.stringify(value) + ', {})')
+    }
+    t.equals(fromValue(value, unsigned, target), target, 'fromValue(' + JSON.stringify(value) + ', ' + !!unsigned + ', {})')
+  }
 })
 
 test('fromBytes', function (t) {
