@@ -4,21 +4,15 @@
   "description": "Rewritten variant of long.js that is entirely functional (and faster because of it)",
   "main": "index.js",
   "scripts": {
-    "build": "node build",
     "lint": "standard",
     "types": "npx tsd",
     "test": "npm run lint && npm run cover && npm run perf && npm run types",
     "perf": "npm run perf:wasm && npm run perf:js",
     "perf:wasm": "node test/perf.js",
     "perf:js": "node --noexpose_wasm test/perf.js",
-    "unit": "npm run lint && npm run test:wasm && npm run test:js",
-    "unit:wasm": "node test/index.js",
-    "unit:js": "node --noexpose_wasm test/index.js",
+    "unit": "node test/index.js",
     "verbose": "env TEST_VERBOSE=1 npm run unit",
-    "cover": "npm run cover:wasm && npm run cover:js && npm run cover:report",
-    "cover:wasm": "nyc --silent --no-clean npm run unit:wasm",
-    "cover:js": "nyc --silent --no-clean npm run unit:js",
-    "cover:report": "nyc report --reporter=lcov --reporter=html"
+    "cover": "nyc --reporter=lcov --reporter=html npm run unit"
   },
   "keywords": [
     "math",

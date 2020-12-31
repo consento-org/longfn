@@ -60,7 +60,6 @@ declare namespace longfn {
   function fromString (input: string, radix: RADIX, unsigned: false, target?: ILongLike): ISLong
   function toNumber (long: ILong): number
   function toInt (long: ILong): number
-
   function toBytes (long: ILong): Uint8Array
   function toBytes (long: ILong, offset: number): Uint8Array
   function toBytes <TTarget extends ArrayBufferView> (long: ILong, target: TTarget): TTarget

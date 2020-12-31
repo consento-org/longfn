@@ -16,20 +16,6 @@ const isLE = new Uint16Array(new Uint8Array([0xAA, 0xBB]).buffer)[0] === 0xBBAA
 
 const powDbl = Math.pow // Used 4 times (4*8 to 15+4)
 
-/**
- * wasm optimizations, to do native i64 multiplication and divide
- */
-let wasm = null
-
-try {
-  // Ported from
-  wasm = new global.WebAssembly.Instance(new global.WebAssembly.Module(new Uint8Array([
-    // WASM Binary to be inserted by build script
-  ])), {}).exports
-} catch (e) {
-  // no wasm support :(
-}
-
 function fromBits (low, high, unsigned, target) {
   if (target === undefined || target === null) {
     return {
@@ -547,10 +533,10 @@ function mulRaw (long, multiplier, target) {
 }
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L865-L940
-const muljs = (function () {
+const mul = (function () {
   const TMP_MULTI1 = fromInt(0)
   const TMP_MULTI2 = fromInt(0)
-  return function muljs (long, multiplier, target) {
+  return function mul (long, multiplier, target) {
     if (isZero(long) || isZero(multiplier)) {
       return copy(long.unsigned ? UZERO : ZERO, target)
     }
@@ -589,15 +575,8 @@ const muljs = (function () {
   }
 })()
 
-function mulwasm (long, multiplier, target, _) {
-  target.low = wasm.mul(long.low, long.high, multiplier.low, multiplier.high)
-  target.high = wasm.get_high()
-  target.unsigned = !!long.unsigned
-  return target
-}
-
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L957-L1062
-const divjs = (function () {
+const div = (function () {
   const rem = fromInt(0)
   const approxRes = fromInt(0)
   const approxRem = fromInt(0)
@@ -605,7 +584,7 @@ const divjs = (function () {
   const negDivisor = fromInt(0)
   const unsignedDivisor = fromInt(0)
   const halfUnsigned = fromInt(0)
-  return function divjs (long, divisor, target) {
+  return function div (long, divisor, target) {
     if (isZero(divisor)) {
       throw Error('division by zero')
     }
@@ -625,12 +604,12 @@ const divjs = (function () {
         // At this point, we have |other| >= 2, so |this/other| < |MIN_VALUE|.
         const halfThis = shr(long, 1, {})
         const approx = {}
-        shl(divjs(halfThis, divisor, {}), 1, approx)
+        shl(div(halfThis, divisor, {}), 1, approx)
         if (eq(approx, ZERO)) {
           return copy(isNegative(divisor) ? ONE : NEG_ONE, target, false)
         }
-        sub(long, muljs(divisor, approx, target), target)
-        return add(approx, divjs(target, divisor, target), target)
+        sub(long, mul(divisor, approx, target), target)
+        return add(approx, div(target, divisor, target), target)
       }
       if (eq(divisor, MIN_VALUE)) {
         return copy(ZERO, target)
@@ -638,12 +617,12 @@ const divjs = (function () {
       if (isNegative(long)) {
         long = neg(long, negLong)
         if (isNegative(divisor)) {
-          return divjs(long, neg(divisor, negDivisor), target)
+          return div(long, neg(divisor, negDivisor), target)
         }
-        return neg(divjs(long, divisor, target), target)
+        return neg(div(long, divisor, target), target)
       }
       if (isNegative(divisor)) {
-        return neg(divjs(long, neg(divisor, negDivisor), target), target)
+        return neg(div(long, neg(divisor, negDivisor), target), target)
       }
       copy(ZERO, target)
     } else {
@@ -680,11 +659,11 @@ const divjs = (function () {
       // Decrease the approximation until it is smaller than the remainder.  Note
       // that if it is too large, the product overflows and is negative.
       fromNumber(approx, false, approxRes)
-      muljs(approxRes, divisor, approxRem)
+      mul(approxRes, divisor, approxRem)
       while (isNegative(approxRem) || gt(approxRem, rem)) {
         approx -= delta
         fromNumber(approx, long.unsigned, approxRes)
-        muljs(approxRes, divisor, approxRem)
+        mul(approxRes, divisor, approxRem)
       }
 
       // We know the answer can't be zero... and actually, zero would cause
@@ -696,50 +675,11 @@ const divjs = (function () {
   }
 })()
 
-function divwasm (long, divisor, target) {
-  if (isZero(divisor)) {
-    throw Error('division by zero')
-  }
-  // guard against signed division overflow: the largest
-  // negative number / -1 would be 1 larger than the largest
-  // positive number, due to two's complement.
-  if (
-    !long.unsigned &&
-    long.high === -0x80000000 &&
-    divisor.low === -1 &&
-    divisor.high === -1
-  ) {
-    // be consistent with non-wasm code path
-    return copy(long, target)
-  }
-  target.low = (long.unsigned ? wasm.div_u : wasm.div_s)(
-    long.low,
-    long.high,
-    divisor.low,
-    divisor.high
-  )
-  target.high = wasm.get_high()
-  target.unsigned = !!long.unsigned
-  return target
-}
-
-function modwasm (long, divisor, target) {
-  target.low = (long.unsigned ? wasm.rem_u : wasm.rem_s)(
-    long.low,
-    long.high,
-    divisor.low,
-    divisor.high
-  )
-  target.high = wasm.get_high()
-  target.unsigned = !!long.unsigned
-  return target
-}
-
-const modjs = (function () {
+const mod = (function () {
   const tmp = fromInt(0)
   return function modjs (long, divisor, target) {
-    divjs(long, divisor, tmp)
-    muljs(tmp, divisor, tmp)
+    div(long, divisor, tmp)
+    mul(tmp, divisor, tmp)
     return sub(long, tmp, target)
   }
 })()
@@ -793,8 +733,6 @@ function copy (source, target, forceUnsigned) {
   return target
 }
 
-const mul = wasm ? mulwasm : muljs
-const div = wasm ? divwasm : divjs
 let RADIX_DIGITS
 function getDigitsByRadix (radix) {
   if (RADIX_DIGITS === undefined) {
@@ -926,9 +864,9 @@ module.exports = Object.freeze({
   shl: shl,
   rotr: rotr,
   rotl: rotl,
-  mul,
-  div,
-  mod: wasm ? modwasm : modjs,
+  mul: mul,
+  div: div,
+  mod: mod,
   add: add,
   sub: sub,
   xor: xor,
