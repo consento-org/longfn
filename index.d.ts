@@ -48,6 +48,8 @@ declare namespace longfn {
   function fromFloat (float: number, unsigned?: false, target?: ILongLike): ISLong
   function fromInt (number: number, unsigned: true, target?: ILongLike): IULong
   function fromInt (number: number, unsigned?: false, target?: ILongLike): ISLong
+  function fromBigInt (input: bigint, unsigned?: falsey, target?: ILongLike): ISLong
+  function fromBigInt (input: bigint, unsigned: truey, target?: ILongLike): IULong
   function fromNumber (value: number, unsigned: true, target?: ILongLike): IULong
   function fromNumber (value: number, unsigned?: false, target?: ILongLike): ISLong
   function fromBits (low: number, high: number, unsigned: true, target?: ILongLike): IULong
@@ -60,6 +62,7 @@ declare namespace longfn {
   function fromString (input: string, radix: RADIX, unsigned: false, target?: ILongLike): ISLong
   function toNumber (long: ILong): number
   function toInt (long: ILong): number
+  function toBigInt (long: ILong): bigint
   function toBytes (long: ILong): Uint8Array
   function toBytes (long: ILong, offset: number): Uint8Array
   function toBytes <TTarget extends ArrayBufferView> (long: ILong, target: TTarget): TTarget

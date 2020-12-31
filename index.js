@@ -42,6 +42,50 @@ function fromInt (value, unsigned, target) {
   return fromBits(value, high, unsigned, target)
 }
 
+function noBigInt () {
+  throw new Error('BigInt is not supported on this platform.')
+}
+
+const fromBigInt = typeof BigInt === 'undefined'
+  ? noBigInt
+  : (function () {
+      const N0 = BigInt(0)
+      const N1 = BigInt(1)
+      const NN1 = BigInt(-1)
+      const NTWO_PWR_32_DBL = BigInt(TWO_PWR_32_DBL)
+      const NTWO_PWR_64_DBL = BigInt(TWO_PWR_64_DBL)
+      const NTWO_PWR_63_DBL = BigInt(TWO_PWR_63_DBL)
+      return function fromBigInt (value, unsigned, target) {
+        if (target === null || target === undefined) {
+          target = { low: 0 | 0, high: 0 | 0, unsigned: false }
+        }
+        if (unsigned) {
+          if (value < N0) {
+            return copy(UZERO, target)
+          }
+          if (value >= NTWO_PWR_64_DBL) {
+            return copy(MAX_UNSIGNED_VALUE, target)
+          }
+        } else {
+          if (value <= -NTWO_PWR_63_DBL) {
+            return copy(MIN_VALUE, target)
+          }
+          if (value + N1 >= NTWO_PWR_63_DBL) {
+            return copy(MAX_VALUE, target)
+          }
+          if (value < N0) {
+            return neg(fromBigInt(value * NN1, unsigned, target), target)
+          }
+        }
+        return fromBits(
+          Number(value % NTWO_PWR_32_DBL),
+          Number(value / NTWO_PWR_32_DBL),
+          unsigned,
+          target
+        )
+      }
+    })()
+
 // Ported from: https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L161-L178
 function fromNumber (value, unsigned, target) {
   if (target === null || target === undefined) {
@@ -77,6 +121,9 @@ function fromNumber (value, unsigned, target) {
 function fromValue (value, unsigned, target) {
   if (typeof unsigned === 'object' && unsigned !== null) {
     return fromValue(value, undefined, unsigned)
+  }
+  if (typeof value === 'bigint') {
+    return fromBigInt(value, unsigned, target)
   }
   if (typeof value === 'number') {
     return fromNumber(value, unsigned, target)
@@ -282,6 +329,26 @@ function clone (long) {
 function toInt (long) {
   return long.unsigned ? long.low >>> 0 : long.low
 }
+
+const toBigInt = typeof BigInt === 'undefined'
+  ? noBigInt
+  : (function () {
+      const NTWO_PWR_32_DBL = BigInt(TWO_PWR_32_DBL)
+      const NBASE = BigInt(0x80000000) * 2n
+      const NN1 = BigInt(-1)
+      const tmp = fromInt(0)
+      return function toBigInt (long) {
+        if (isNegative(long)) {
+          return toBigInt(neg(long, tmp)) * NN1
+        }
+        const low = long.low < 0 ? NBASE + BigInt(long.low) : BigInt(long.low)
+        const value = BigInt(long.high) * NTWO_PWR_32_DBL + low
+        if (long.unsigned) {
+          return BigInt.asUintN(64, value)
+        }
+        return BigInt.asIntN(64, value)
+      }
+    })()
 
 function isZero (long) {
   return long.low === 0 && long.high === 0
@@ -897,6 +964,7 @@ module.exports = Object.freeze({
   fromInt: fromInt,
   toNumber: toNumber,
   toInt: toInt,
+  toBigInt: toBigInt,
   toString: toString,
   toBytes: isLE ? toBytesLE : toBytesBE,
   toBytesLE: toBytesLE,
@@ -907,6 +975,7 @@ module.exports = Object.freeze({
   fromBytesBE: fromBytesBE,
   fromNumber: fromNumber,
   fromBits: fromBits,
+  fromBigInt: fromBigInt,
   fromString: fromString,
   fromFloat: fromFloat
 })

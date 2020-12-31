@@ -20,8 +20,10 @@ const isNegative = long.isNegative
 const isPositive = long.isPositive
 const mod = long.mod
 const toNumber = long.toNumber
+const toBigInt = long.toBigInt
 const fromInt = long.fromInt
 const fromNumber = long.fromNumber
+const fromBigInt = long.fromBigInt
 const fromBits = long.fromBits
 const fromString = long.fromString
 const toString = long.toString
@@ -1540,6 +1542,55 @@ test('from number', function (t) {
   t.end()
 })
 
+if (typeof BigInt !== 'undefined') {
+  test('fromBigInt()', function (t) {
+    t.deepEqual(fromBigInt(BigInt(1)), fromNumber(1), 'fromBigInt(1)')
+    t.deepEqual(fromBigInt(BigInt(1), true), fromNumber(1, true), 'fromBigInt(1, true)')
+    const target = {}
+    t.equal(fromBigInt(BigInt(1), false, target), target, 'fills target')
+    t.deepEqual(fromBigInt(BigInt(8000000)), fromNumber(8000000), 'fromBigInt(8000000)')
+    t.deepEquals(fromBigInt(BigInt(1)), fromInt(1), '1')
+    t.deepEquals(fromBigInt(BigInt(-1)), fromInt(-1), '-1')
+    t.deepEquals(fromBigInt(BigInt(2)), fromInt(2), '2')
+    t.deepEquals(fromBigInt(BigInt(-2)), fromInt(-2), '-2')
+    t.deepEquals(fromBigInt(BigInt('9223372036854775807')), fromBits(-1, 2147483647), '9223372036854775807')
+    t.deepEquals(fromBigInt(BigInt('-9223372036854775808')), fromBits(0, -2147483648), '-9223372036854775807')
+    t.deepEquals(fromBigInt(BigInt(1), true), fromNumber(1, true), '1')
+    t.deepEquals(fromBigInt(BigInt(-1), true), long.UZERO, '-1')
+    t.deepEquals(fromBigInt(BigInt(2), true), fromNumber(2, true), '2')
+    t.deepEquals(fromBigInt(BigInt(-2), true), long.UZERO, '-2')
+    t.deepEquals(fromBigInt(BigInt('18446744073709551616'), true), long.MAX_UNSIGNED_VALUE, 'U_MAX')
+    t.deepEquals(fromBigInt(BigInt('0xa'), true), fromInt(0xa, true), '0xa')
+    t.deepEquals(fromBigInt(BigInt('0xf')), fromInt(0xf), '0xf')
+    t.deepEquals(fromBigInt(BigInt('0xff')), fromInt(0xff), '0xff')
+    t.deepEquals(fromBigInt(BigInt('0xfff')), fromInt(0xfff), '0xfff')
+    t.deepEquals(fromBigInt(BigInt('0xffff')), fromInt(0xffff), '0xffff')
+    t.deepEquals(fromBigInt(BigInt('0xfffff')), fromInt(0xfffff), '0xfffff')
+    t.deepEquals(fromBigInt(BigInt('0xffffff')), fromNumber(0xffffff), '0xffffff')
+    t.deepEquals(fromBigInt(BigInt('0xfffffff')), fromNumber(0xfffffff), '0xfffffff')
+    t.deepEquals(fromBigInt(BigInt('0xffffffff')), fromNumber(0xffffffff), '0xffffffff')
+    t.deepEquals(fromBigInt(BigInt('0xfffffffff')), fromNumber(0xfffffffff), '0xfffffffff')
+    t.end()
+  })
+  test('toBigInt()', function (t) {
+    t.deepEqual(toBigInt(fromInt(1)), BigInt(1), 'toBigInt(1)')
+    t.deepEqual(toBigInt(fromInt(2)), BigInt(2), 'toBigInt(2)')
+    t.deepEqual(toBigInt(fromInt(-1)), BigInt(-1), 'toBigInt(-1)')
+    t.deepEqual(toBigInt(fromInt(-2)), BigInt(-2), 'toBigInt(-2)')
+    t.deepEqual(toBigInt(fromInt(1, true)), BigInt(1), 'toBigInt(u1)')
+    t.deepEqual(toBigInt(fromInt(2, true)), BigInt(2), 'toBigInt(u2)')
+    t.deepEqual(toBigInt(fromInt(0x7fffffff)), BigInt(0x7fffffff), 'toBigInt(0x7fffffff)')
+    t.deepEqual(toBigInt(fromNumber(0x80000000)), BigInt(0x80000000), 'toBigInt(0x80000000)')
+    t.deepEqual(toBigInt(fromNumber(0x80000001)), BigInt(0x80000001), 'toBigInt(0x80000001)')
+    t.deepEqual(toBigInt(fromInt(0x7fffffff, true)), BigInt(0x7fffffff), 'toBigInt(u0x7fffffff)')
+    t.deepEqual(toBigInt(fromNumber(0x80000000, true)), BigInt(0x80000000), 'toBigInt(u0x80000000)')
+    t.deepEqual(toBigInt(fromNumber(0x80000001, true)), BigInt(0x80000001), 'toBigInt(u0x80000001)')
+    t.deepEqual(toBigInt(fromBits(-1, 2147483647)), BigInt('9223372036854775807'), 'toBigInt(9223372036854775807)')
+    t.deepEqual(toBigInt(add(add(copy(long.MAX_VALUE, {}, true), long.UONE, {}), long.UONE, {})), BigInt('9223372036854775809'), 'toBigInt(9223372036854775809)')
+    t.end()
+  })
+}
+
 test('from float', function (t) {
   t.deepEquals(fromFloat(0.5, TMP, false), { low: 0, high: 1071644672, unsigned: false }, verbose && 'fromFloats(0.5, 0)')
   t.deepEquals(fromFloat(123131415.1123415, TMP, false), { low: 1551042982, high: 1100831576, unsigned: false }, verbose && 'fromFloats(123131415.1123415, 123.1131)')
@@ -1711,7 +1762,7 @@ test('toBytes', function (t) {
   t.end()
 })
 
-test('fromValue', function (t) {
+test.only('fromValue', function (t) {
   testValue(1, fromNumber(1))
   testValue(-1, fromNumber(-1))
   testValue(1, fromNumber(1, true), true)
@@ -1730,15 +1781,20 @@ test('fromValue', function (t) {
   testValue([0x01234567, 0x12345678], fromBits(0x01234567, 0x12345678, true), true)
   testValue(new Long(0x01234567, 0x12345678), fromBits(0x01234567, 0x12345678))
   testValue(new Long(0x01234567, 0x12345678, true), fromBits(0x01234567, 0x12345678, true))
+  if (typeof BigInt !== 'undefined') {
+    testValue(BigInt(0xa), fromInt(0xa))
+    testValue(BigInt(0xa), fromInt(0xa, true), true)
+  }
   t.end()
 
   function testValue (value, expected, unsigned) {
-    t.deepEqual(fromValue(value, unsigned), expected, 'fromValue(' + JSON.stringify(value) + ', ' + !!unsigned + ')')
+    const str = typeof value === 'bigint' ? value.toString() : JSON.stringify(value)
+    t.deepEqual(fromValue(value, unsigned), expected, 'fromValue(' + str + ', ' + !!unsigned + ')')
     const target = {}
     if (!unsigned) {
-      t.equals(fromValue(value, target), target, 'fromValue(' + JSON.stringify(value) + ', {})')
+      t.equals(fromValue(value, target), target, 'fromValue(' + str + ', {})')
     }
-    t.equals(fromValue(value, unsigned, target), target, 'fromValue(' + JSON.stringify(value) + ', ' + !!unsigned + ', {})')
+    t.equals(fromValue(value, unsigned, target), target, 'fromValue(' + str + ', ' + !!unsigned + ', {})')
   }
 })
 
