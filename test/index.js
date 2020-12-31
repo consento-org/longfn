@@ -1404,15 +1404,15 @@ test('bit operations', function (t) {
     for (let len = 1; len < 64; ++len) {
       shiftOps(long, len, (len < 32)
         ? {
-          shiftLeft: { high: (long.high << len) | (long.low >>> (32 - len)), low: long.low << len, unsigned: false },
-          shiftRight: { high: (long.high >> len), low: (long.low >>> len) | (long.high << (32 - len)), unsigned: false },
-          shiftRightUnsigned: { high: (long.high >>> len), low: (long.low >>> len) | (long.high << (32 - len)), unsigned: false }
-        }
+            shiftLeft: { high: (long.high << len) | (long.low >>> (32 - len)), low: long.low << len, unsigned: false },
+            shiftRight: { high: (long.high >> len), low: (long.low >>> len) | (long.high << (32 - len)), unsigned: false },
+            shiftRightUnsigned: { high: (long.high >>> len), low: (long.low >>> len) | (long.high << (32 - len)), unsigned: false }
+          }
         : {
-          shiftLeft: { high: long.low << (len - 32), low: 0, unsigned: false },
-          shiftRight: { high: long.high >= 0 ? 0 : -1, low: long.high >> (len - 32), unsigned: false },
-          shiftRightUnsigned: { high: 0, low: len === 32 ? long.high : long.high >>> (len - 32), unsigned: false }
-        }
+            shiftLeft: { high: long.low << (len - 32), low: 0, unsigned: false },
+            shiftRight: { high: long.high >= 0 ? 0 : -1, low: long.high >> (len - 32), unsigned: false },
+            shiftRightUnsigned: { high: 0, low: len === 32 ? long.high : long.high >>> (len - 32), unsigned: false }
+          }
       )
     }
     shiftOps(long, 64, {
@@ -1455,12 +1455,12 @@ test('to int', function (t) {
 
 test('add, mul', function (t) {
   let count = 0
-  for (var i = 0; i < NUMBERS.length; i++) {
+  for (let i = 0; i < NUMBERS.length; i++) {
     const long = NUMBERS[i]
     const longStr = toStr(long)
     const result = {}
     const expected = {}
-    for (var j = 0; j < i; j++) {
+    for (let j = 0; j < i; j++) {
       const other = NUMBERS[j]
       const otherStr = toStr(other)
       result[otherStr] = {
@@ -1480,12 +1480,12 @@ test('add, mul', function (t) {
 
 test('div', function (t) {
   let count = 0
-  for (var i = 0; i < NUMBERS.length; i++) {
+  for (let i = 0; i < NUMBERS.length; i++) {
     const long = NUMBERS[i]
     const longStr = toStr(long)
     const result = {}
     const expected = {}
-    for (var j = 0; j < NUMBERS.length; j++) {
+    for (let j = 0; j < NUMBERS.length; j++) {
       const divisor = NUMBERS[j]
       if (!isZero(divisor)) {
         const divStr = toStr(divisor)
@@ -1508,7 +1508,7 @@ test('div', function (t) {
 
 test('sub', function (t) {
   let count = 0
-  for (var i = 0; i < NUMBERS.length; i++) {
+  for (let i = 0; i < NUMBERS.length; i++) {
     const long = NUMBERS[i]
     const longStr = toStr(long)
     const result = {}
@@ -1629,10 +1629,14 @@ test('from string', function (t) {
 
 test('Basic', function (t) {
   const longVal = fromBits(0xFFFFFFFF, 0x7FFFFFFF)
+
+  /* eslint-disable-next-line no-loss-of-precision */
   t.strictEqual(toNumber(longVal), 9223372036854775807)
   t.strictEqual(toString(longVal), '9223372036854775807')
 
   const longVal2 = copy(longVal, {})
+
+  /* eslint-disable-next-line no-loss-of-precision */
   t.strictEqual(toNumber(longVal2), 9223372036854775807)
   t.strictEqual(toString(longVal2), '9223372036854775807')
   t.strictEqual(longVal2.unsigned, longVal.unsigned)
@@ -1736,6 +1740,8 @@ test('unsignedConstructNegint', function (t) {
   t.strictEqual(longVal.low, -1)
   t.strictEqual(longVal.high, -1)
   t.strictEqual(longVal.unsigned, true)
+
+  /* eslint-disable-next-line no-loss-of-precision */
   t.strictEqual(toNumber(longVal), 18446744073709551615)
   t.strictEqual(toString(longVal), '18446744073709551615')
   t.end()
@@ -1746,16 +1752,21 @@ test('unsignedConstructHighLow', function (t) {
   t.strictEqual(longVal.low, -1)
   t.strictEqual(longVal.high, -1)
   t.strictEqual(longVal.unsigned, true)
+
+  /* eslint-disable-next-line no-loss-of-precision */
   t.strictEqual(toNumber(longVal), 18446744073709551615)
   t.strictEqual(toString(longVal), '18446744073709551615')
   t.end()
 })
 
 test('unsignedConstructNumber', function (t) {
+  /* eslint-disable-next-line no-loss-of-precision */
   const longVal = fromNumber(0xFFFFFFFFFFFFFFFF, true)
   t.strictEqual(longVal.low, -1)
   t.strictEqual(longVal.high, -1)
   t.strictEqual(longVal.unsigned, true)
+
+  /* eslint-disable-next-line no-loss-of-precision */
   t.strictEqual(toNumber(longVal), 18446744073709551615)
   t.strictEqual(toString(longVal), '18446744073709551615')
   t.end()
@@ -1765,6 +1776,8 @@ test('unsignedToSignedUnsigned', function (t) {
   const longVal = fromNumber(-1, false)
   t.strictEqual(toNumber(longVal), -1)
   longVal.unsigned = true
+
+  /* eslint-disable-next-line no-loss-of-precision */
   t.strictEqual(toNumber(longVal), 0xFFFFFFFFFFFFFFFF)
   t.strictEqual(toString(longVal, 16), 'ffffffffffffffff')
   longVal.unsigned = false
@@ -1794,6 +1807,8 @@ test('unsignedZeroSubSigned', function (t) {
   t.strictEqual(longVal.low, -1)
   t.strictEqual(longVal.high, -1)
   t.strictEqual(longVal.unsigned, true)
+
+  /* eslint-disable-next-line no-loss-of-precision */
   t.strictEqual(toNumber(longVal), 18446744073709551615)
   t.strictEqual(toString(longVal), '18446744073709551615')
   t.end()
