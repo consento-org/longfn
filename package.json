@@ -30,5 +30,13 @@
     "standard": "^16.0.3",
     "tape": "^5.1.0",
     "tsd": "^0.14.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/consento-org/longfn.git"
+  },
+  "bugs": {
+    "url": "https://github.com/consento-org/longfn/issues"
+  },
+  "homepage": "https://github.com/consento-org/longfn#readme"
 }
