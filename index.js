@@ -322,10 +322,6 @@ const toString = (function () {
   }
 })()
 
-function clone (long) {
-  return copy(long, {})
-}
-
 function toInt (long) {
   return long.unsigned ? long.low >>> 0 : long.low
 }
@@ -938,7 +934,6 @@ module.exports = Object.freeze({
   isPositive: isPositive,
   isOdd: isOdd,
   isEven: isEven,
-  clone: clone,
   eq: eq,
   ne: ne,
   lt: lt,
