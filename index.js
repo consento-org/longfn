@@ -468,6 +468,13 @@ function not (long, target) {
   return target
 }
 
+function or (long, other, target) {
+  target.low = long.low | other.low
+  target.high = long.high | other.high
+  target.unsigned = !!long.unsigned
+  return target
+}
+
 function xor (long, other, target) {
   target.low = long.low ^ other.low
   target.high = long.high ^ other.high
@@ -959,6 +966,7 @@ module.exports = Object.freeze({
   mod: mod,
   add: add,
   sub: sub,
+  or: or,
   xor: xor,
   and: and,
   not: not,

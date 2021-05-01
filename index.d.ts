@@ -118,6 +118,7 @@ declare namespace longfn {
   function shr <TLong extends ILong>(long: ILong, numBits: number, target: ILongLike): TLong
   function shru <TLong extends ILong>(long: TLong, numBits: number, target: ILongLike): TLong
   function sub <TLong extends ILong>(long: TLong, subtrahend: TLong, target: ILongLike): TLong
+  function or <TLong extends ILong>(long: TLong, subtrahend: TLong, target: ILongLike): TLong
   function xor <TLong extends ILong>(long: TLong, other: TLong, target: ILongLike): TLong
   function not <TLong extends ILong>(long: TLong, target: ILongLike): TLong
   function copy <TLong extends ILong>(source: TLong, target: ILongLike): TLong
