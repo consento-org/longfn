@@ -8,6 +8,7 @@ const and = long.and
 const mul = long.mul
 const div = long.div
 const xor = long.xor
+const or = long.or
 const not = long.not
 const shl = long.shl
 const shr = long.shr
@@ -1395,7 +1396,8 @@ test('bit operations', function (t) {
       const otherStr = toStr(other)
       result['& ' + otherStr] = and(long, other, {})
       expected['& ' + otherStr] = { low: long.low & other.low, high: long.high & other.high, unsigned: false }
-      // result['| ' + otherStr] = or(long, other, {})
+      result['| ' + otherStr] = or(long, other, {})
+      expected['| ' + otherStr] = { low: long.low | other.low, high: long.high | other.high, unsigned: false }
       result['^ ' + otherStr] = xor(long, other, {})
       expected['^ ' + otherStr] = { low: long.low ^ other.low, high: long.high ^ other.high, unsigned: false }
     })
