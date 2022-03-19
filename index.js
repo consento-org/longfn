@@ -935,6 +935,19 @@ function fromString (str, unsigned, radix, target) {
   return target
 }
 
+function ctz32 (value) {
+  const c = Math.clz32(value & -value)
+  return value ? 31 - c : c
+}
+
+function clz (long) {
+  return long.high ? Math.clz32(long.high) : Math.clz32(long.low) + 32
+}
+
+function ctz (long) {
+  return long.low ? ctz32(long.low) : ctz32(long.high) + 32
+}
+
 module.exports = Object.freeze({
   ZERO: ZERO,
   UZERO: UZERO,
@@ -988,5 +1001,7 @@ module.exports = Object.freeze({
   fromBits: fromBits,
   fromBigInt: fromBigInt,
   fromString: fromString,
-  fromFloat: fromFloat
+  fromFloat: fromFloat,
+  clz: clz,
+  ctz: ctz
 })

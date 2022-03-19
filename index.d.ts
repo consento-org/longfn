@@ -129,6 +129,8 @@ declare namespace longfn {
   function and (long: ILong, other: ILong, target: ILongLike): ILong
   function div (long: ILong, divisor: ILong, target: ILongLike): ILong
   function mul <TLong extends ISLong | IULong>(long: TLong, multiplier: TLong, target?: ILongLike): TLong
+  function clz (long: ILong): number
+  function ctz (long: ILong): number
 }
 
 export = longfn

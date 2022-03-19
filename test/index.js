@@ -43,6 +43,8 @@ const fromFloat = long.fromFloat
 const rotl = long.rotl
 const rotr = long.rotr
 const copy = long.copy
+const clz = long.clz
+const ctz = long.ctz
 
 const verbose = process.env.TEST_VERBOSE
 const TMP = fromInt(0, false)
@@ -2015,5 +2017,23 @@ test('unsigned equality', function (t) {
     long.ne(add(long.MAX_VALUE, long.ONE, {}),
       add(ulongMax, long.ONE, {}))
   )
+  t.end()
+})
+
+test('test clz/ctz', function (t) {
+  const longVal0 = fromBits(0, 0)
+  const longVal1 = fromBits(1, 0)
+  const longVal2 = fromBits(0, 1)
+  const longVal3 = fromBits(1, 1)
+
+  t.deepEqual(clz(longVal0), 64)
+  t.deepEqual(clz(longVal1), 63)
+  t.deepEqual(clz(longVal2), 31)
+  t.deepEqual(clz(longVal3), 31)
+
+  t.deepEqual(ctz(longVal0), 64)
+  t.deepEqual(ctz(longVal1), 0)
+  t.deepEqual(ctz(longVal2), 32)
+  t.deepEqual(ctz(longVal3), 0)
   t.end()
 })
