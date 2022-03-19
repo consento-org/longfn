@@ -483,6 +483,20 @@ function add (long, addend, target) {
   return target
 }
 
+function toUnsigned (long, target) {
+  target.low = long.low
+  target.high = long.high
+  target.unsigned = true
+  return target
+}
+
+function toSigned (long, target) {
+  target.low = long.low
+  target.high = long.high
+  target.unsigned = false
+  return target
+}
+
 function not (long, target) {
   target.low = ~long.low
   target.high = ~long.high
@@ -1029,5 +1043,7 @@ module.exports = Object.freeze({
   isLong: isLong,
   isLongLike: isLongLike,
   isSLong: isSLong,
-  isULong: isULong
+  isULong: isULong,
+  toSigned: toSigned,
+  toUnsigned: toUnsigned
 })

@@ -44,6 +44,9 @@ declare namespace longfn {
   type truey = truish | true
   type falsey = falsish | false
 
+  function toSigned (long: ILong, target: ILongLike): ISLong
+  function toUnsigned (long: ILong, target: ILongLike): IULong
+
   function fromFloat (float: number, unsigned: true, target?: ILongLike): IULong
   function fromFloat (float: number, unsigned?: false, target?: ILongLike): ISLong
   function fromInt (number: number, unsigned: true, target?: ILongLike): IULong

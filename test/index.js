@@ -49,6 +49,8 @@ const isLong = long.isLong
 const isLongLike = long.isLongLike
 const isULong = long.isULong
 const isSLong = long.isSLong
+const toSigned = long.toSigned
+const toUnsigned = long.toUnsigned
 
 const verbose = process.env.TEST_VERBOSE
 const TMP = fromInt(0, false)
@@ -2067,5 +2069,13 @@ test('is Long/LongLike/SLong/ULong', function (t) {
   t.ok(isLongLike({}))
   t.ok(isLongLike({ low: 0 }))
   t.ok(isLongLike({ high: 0 }))
+  t.end()
+})
+
+test('to signed/unsigned', function (t) {
+  t.deepEqual(toSigned(fromBits(1, 2, true), fromInt(0)), fromBits(1, 2, false))
+  t.deepEqual(toSigned(fromBits(1, 2, false), fromInt(0)), fromBits(1, 2, false))
+  t.deepEqual(toUnsigned(fromBits(1, 2, true), fromInt(0)), fromBits(1, 2, true))
+  t.deepEqual(toUnsigned(fromBits(1, 2, false), fromInt(0)), fromBits(1, 2, true))
   t.end()
 })
