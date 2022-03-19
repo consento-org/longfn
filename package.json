@@ -26,12 +26,12 @@
   "author": "Martin Heidegger <martin.heidegger@gmail.com>",
   "license": "APL",
   "devDependencies": {
-    "long": "^4.0.0",
+    "long": "^5.2.0",
     "nyc": "^15.1.0",
     "secure-shuffle": "^2.0.0",
-    "standard": "^16.0.3",
-    "tape": "^5.1.0",
-    "tsd": "^0.14.0"
+    "standard": "^16.0.4",
+    "tape": "^5.5.2",
+    "tsd": "^0.19.1"
   },
   "directories": {
     "test": "test"
