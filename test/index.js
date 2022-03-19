@@ -1613,12 +1613,12 @@ test('basic string conversion', function (t) {
     { n: fromInt(-23), 2: '-10111', 3: '-212', 8: '-27', 16: '-17', 21: '-12', 36: '-n' },
     {
       n: fromInt(-1, true),
-      2: '1111111111111111111111111111111111111111111111111111111111111111',
-      3: '11112220022122120101211020120210210211220',
-      8: '1777777777777777777777',
-      16: 'ffffffffffffffff',
-      21: '5e8g4ggg7g56dif',
-      36: '3w5e11264sgsf'
+      2: '11111111111111111111111111111111',
+      3: '102002022201221111210',
+      8: '37777777777',
+      16: 'ffffffff',
+      21: '281d55i3',
+      36: '1z141z3'
     },
     {
       n: fromInt(0x7fffffff),
@@ -1849,12 +1849,12 @@ test('unsignedMinMax', function (t) {
 test('unsignedConstructNegint', function (t) {
   const longVal = fromInt(-1, true)
   t.strictEqual(longVal.low, -1)
-  t.strictEqual(longVal.high, -1)
+  t.strictEqual(longVal.high, 0)
   t.strictEqual(longVal.unsigned, true)
 
   /* eslint-disable-next-line no-loss-of-precision */
-  t.strictEqual(toNumber(longVal), 18446744073709551615)
-  t.strictEqual(toString(longVal), '18446744073709551615')
+  t.strictEqual(toNumber(longVal), 4294967295)
+  t.strictEqual(toString(longVal), '4294967295')
   t.end()
 })
 

@@ -34,7 +34,7 @@ function fromInt (value, unsigned, target) {
   let high
   if (unsigned) {
     value >>>= 0
-    high = ((value | 0) < 0 ? -1 : 0) | 0
+    high = 0
   } else {
     value |= 0
     high = (value < 0 ? -1 : 0) | 0
