@@ -1773,7 +1773,7 @@ test('toBytes', function (t) {
   t.end()
 })
 
-test.only('fromValue', function (t) {
+test('fromValue', function (t) {
   testValue(1, fromNumber(1))
   testValue(-1, fromNumber(-1))
   testValue(1, fromNumber(1, true), true)
@@ -1827,6 +1827,15 @@ test('fromBytes', function (t) {
   t.deepEqual(target, longVal, 'BE input filled')
   t.equals(fromBytesLE(LE, null, target), target, 'LE input returned')
   t.deepEqual(target, longVal, 'LE input filled')
+  t.deepEqual(fromBytes(toBytes(long.MAX_VALUE)), long.MAX_VALUE, 'from/toBytes MAX_VALUE')
+  t.deepEqual(fromBytesLE(toBytesLE(long.MAX_VALUE)), long.MAX_VALUE, 'from/toBytes MAX_VALUE LE')
+  t.deepEqual(fromBytesBE(toBytesBE(long.MAX_VALUE)), long.MAX_VALUE, 'from/toBytes MAX_VALUE BE')
+  t.deepEqual(fromBytes(toBytes(fromBits(0xFEDCBA9, 0))), { low: 0xFEDCBA9, high: 0, unsigned: false }, 'from/toBytes 0xFEDCBA9 / 0')
+  t.deepEqual(fromBytes(toBytes(fromBits(0, 0xFEDCBA9))), { low: 0, high: 0xFEDCBA9, unsigned: false }, 'from/toBytes 0xFEDCBA9 / 0')
+  t.deepEqual(fromBytesBE(toBytesBE(fromBits(0xFEDCBA9, 0))), { low: 0xFEDCBA9, high: 0, unsigned: false }, 'from/toBytes 0xFEDCBA9 / 0')
+  t.deepEqual(fromBytesBE(toBytesBE(fromBits(0, 0xFEDCBA9))), { low: 0, high: 0xFEDCBA9, unsigned: false }, 'from/toBytes 0xFEDCBA9 / 0')
+  t.deepEqual(fromBytesLE(toBytesLE(fromBits(0xFEDCBA9, 0))), { low: 0xFEDCBA9, high: 0, unsigned: false }, 'from/toBytes 0xFEDCBA9 / 0')
+  t.deepEqual(fromBytesLE(toBytesLE(fromBits(0, 0xFEDCBA9))), { low: 0, high: 0xFEDCBA9, unsigned: false }, 'from/toBytes 0xFEDCBA9 / 0')
   t.end()
 })
 
