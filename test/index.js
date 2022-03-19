@@ -45,6 +45,10 @@ const rotr = long.rotr
 const copy = long.copy
 const clz = long.clz
 const ctz = long.ctz
+const isLong = long.isLong
+const isLongLike = long.isLongLike
+const isULong = long.isULong
+const isSLong = long.isSLong
 
 const verbose = process.env.TEST_VERBOSE
 const TMP = fromInt(0, false)
@@ -1596,9 +1600,9 @@ if (typeof BigInt !== 'undefined') {
 }
 
 test('from float', function (t) {
-  t.deepEquals(fromFloat(0.5, TMP, false), { low: 0, high: 1071644672, unsigned: false }, verbose && 'fromFloats(0.5, 0)')
-  t.deepEquals(fromFloat(123131415.1123415, TMP, false), { low: 1551042982, high: 1100831576, unsigned: false }, verbose && 'fromFloats(123131415.1123415, 123.1131)')
-  t.deepEquals(fromFloat(-0.5, TMP, false), { low: 0, high: 3219128320, unsigned: false }, verbose && 'fromFloats(-0.5, 0)')
+  t.deepEquals(fromFloat(0.5, TMP, false), { low: 0, high: 1071644672, unsigned: false }, verbose && 'fromFloat(0.5, 0)')
+  t.deepEquals(fromFloat(123131415.1123415, TMP, false), { low: 1551042982, high: 1100831576, unsigned: false }, verbose && 'fromFloat(123131415.1123415, 123.1131)')
+  t.deepEquals(fromFloat(-0.5, TMP, false), { low: 0, high: 3219128320, unsigned: false }, verbose && 'fromFloat(-0.5, 0)')
   // TODO: edge cases
   t.end()
 })
@@ -2035,5 +2039,33 @@ test('test clz/ctz', function (t) {
   t.deepEqual(ctz(longVal1), 0)
   t.deepEqual(ctz(longVal2), 32)
   t.deepEqual(ctz(longVal3), 0)
+  t.end()
+})
+
+test('is Long/LongLike/SLong/ULong', function (t) {
+  t.ok(isLong({ low: 0, high: 0 }))
+  t.ok(isLong({ low: 0, high: 0, unsigned: true }))
+  t.ok(isLong({ low: 0, high: 0, unsigned: false }))
+  t.ok(!isLong())
+  t.ok(!isLong(null))
+  t.ok(!isLong(1))
+  t.ok(!isLong({}))
+  t.ok(!isLong({ low: 0 }))
+  t.ok(!isLong({ high: 0 }))
+  t.ok(isSLong({ low: 0, high: 0 }))
+  t.ok(isSLong({ low: 0, high: 0, unsigned: false }))
+  t.ok(!isSLong({ low: 0, high: 0, unsigned: true }))
+  t.ok(!isULong({ low: 0, high: 0 }))
+  t.ok(!isULong({ low: 0, high: 0, unsigned: false }))
+  t.ok(isULong({ low: 0, high: 0, unsigned: true }))
+  t.ok(isLongLike({ low: 0, high: 0 }))
+  t.ok(isLongLike({ low: 0, high: 0, unsigned: true }))
+  t.ok(isLongLike({ low: 0, high: 0, unsigned: false }))
+  t.ok(!isLongLike())
+  t.ok(!isLongLike(null))
+  t.ok(!isLongLike(1))
+  t.ok(isLongLike({}))
+  t.ok(isLongLike({ low: 0 }))
+  t.ok(isLongLike({ high: 0 }))
   t.end()
 })

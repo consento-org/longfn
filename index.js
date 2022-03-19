@@ -16,6 +16,28 @@ const isLE = new Uint16Array(new Uint8Array([0xAA, 0xBB]).buffer)[0] === 0xBBAA
 
 const powDbl = Math.pow // Used 4 times (4*8 to 15+4)
 
+function isLong (obj) {
+  return obj !== null &&
+    typeof obj === 'object' &&
+    typeof obj.low === 'number' &&
+    typeof obj.high === 'number'
+}
+
+function isSLong (obj) {
+  return isLong(obj) && !obj.unsigned
+}
+
+function isULong (obj) {
+  return isLong(obj) && !!obj.unsigned
+}
+
+function isLongLike (obj) {
+  return obj !== null &&
+    typeof obj === 'object' &&
+    (obj.low === null || obj.low === undefined || typeof obj.low === 'number') &&
+    (obj.high === null || obj.high === undefined || typeof obj.high === 'number')
+}
+
 function fromBits (low, high, unsigned, target) {
   if (target === undefined || target === null) {
     return {
@@ -1003,5 +1025,9 @@ module.exports = Object.freeze({
   fromString: fromString,
   fromFloat: fromFloat,
   clz: clz,
-  ctz: ctz
+  ctz: ctz,
+  isLong: isLong,
+  isLongLike: isLongLike,
+  isSLong: isSLong,
+  isULong: isULong
 })

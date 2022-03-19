@@ -99,6 +99,10 @@ declare namespace longfn {
   function fromBytesBE (bytes: ArrayBufferView, unsigned: truey, offset: number, target?: ILongLike): IULong
   function toString (long: ILong, radix?: number): string
 
+  function isLong (obj: any): obj is ILong
+  function isLongLike (obj: any): obj is ILongLike
+  function isULong (obj: any): obj is IULong
+  function isSLong (obj: any): obj is ISLong
   function isEven (long: ILong): boolean
   function isNegative (long: ILong): boolean
   function isPositive (long: ILong): boolean
