@@ -5,4 +5,6 @@
 package-lock.json
 coverage
 .nyc_output
+.history
 build
+*.tgz

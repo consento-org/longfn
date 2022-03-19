@@ -1,44 +1,44 @@
-const TWO_PWR_16_DBL = 1 << 16
-const TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL
-const TWO_PWR_24_DBL = 1 << 24
-const TWO_PWR_24 = fromInt(TWO_PWR_24_DBL)
-const TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL
-const TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2
-const MIN_VALUE = Object.freeze(fromBits(0, 0x80000000))
-const MAX_VALUE = Object.freeze(fromBits(0xFFFFFFFF, 0x7FFFFFFF))
-const MAX_UNSIGNED_VALUE = Object.freeze(fromBits(0xFFFFFFFF, 0xFFFFFFFF, true))
-const ONE = Object.freeze(fromInt(1))
-const UONE = Object.freeze(fromInt(1, true))
-const NEG_ONE = Object.freeze(fromInt(-1))
-const ZERO = Object.freeze(fromInt(0))
-const UZERO = Object.freeze(fromInt(0, true))
-const isLE = new Uint16Array(new Uint8Array([0xAA, 0xBB]).buffer)[0] === 0xBBAA
+export const TWO_PWR_16_DBL = 1 << 16
+export const TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL
+export const TWO_PWR_24_DBL = 1 << 24
+export const TWO_PWR_24 = fromInt(TWO_PWR_24_DBL)
+export const TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL
+export const TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2
+export const MIN_VALUE = Object.freeze(fromBits(0, 0x80000000))
+export const MAX_VALUE = Object.freeze(fromBits(0xFFFFFFFF, 0x7FFFFFFF))
+export const MAX_UNSIGNED_VALUE = Object.freeze(fromBits(0xFFFFFFFF, 0xFFFFFFFF, true))
+export const ONE = Object.freeze(fromInt(1))
+export const UONE = Object.freeze(fromInt(1, true))
+export const NEG_ONE = Object.freeze(fromInt(-1))
+export const ZERO = Object.freeze(fromInt(0))
+export const UZERO = Object.freeze(fromInt(0, true))
+export const isLE = new Uint16Array(new Uint8Array([0xAA, 0xBB]).buffer)[0] === 0xBBAA
 
 const powDbl = Math.pow // Used 4 times (4*8 to 15+4)
 
-function isLong (obj) {
+export function isLong (obj) {
   return obj !== null &&
     typeof obj === 'object' &&
     typeof obj.low === 'number' &&
     typeof obj.high === 'number'
 }
 
-function isSLong (obj) {
+export function isSLong (obj) {
   return isLong(obj) && !obj.unsigned
 }
 
-function isULong (obj) {
+export function isULong (obj) {
   return isLong(obj) && !!obj.unsigned
 }
 
-function isLongLike (obj) {
+export function isLongLike (obj) {
   return obj !== null &&
     typeof obj === 'object' &&
     (obj.low === null || obj.low === undefined || typeof obj.low === 'number') &&
     (obj.high === null || obj.high === undefined || typeof obj.high === 'number')
 }
 
-function fromBits (low, high, unsigned, target) {
+export function fromBits (low, high, unsigned, target) {
   if (target === undefined || target === null) {
     return {
       low: low | 0,
@@ -52,7 +52,7 @@ function fromBits (low, high, unsigned, target) {
   return target
 }
 
-function fromInt (value, unsigned, target) {
+export function fromInt (value, unsigned, target) {
   let high
   if (unsigned) {
     value >>>= 0
@@ -64,11 +64,11 @@ function fromInt (value, unsigned, target) {
   return fromBits(value, high, unsigned, target)
 }
 
-function noBigInt () {
+export function noBigInt () {
   throw new Error('BigInt is not supported on this platform.')
 }
 
-const fromBigInt = typeof BigInt === 'undefined'
+export const fromBigInt = typeof BigInt === 'undefined'
   ? noBigInt
   : (function () {
       const N0 = BigInt(0)
@@ -109,7 +109,7 @@ const fromBigInt = typeof BigInt === 'undefined'
     })()
 
 // Ported from: https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L161-L178
-function fromNumber (value, unsigned, target) {
+export function fromNumber (value, unsigned, target) {
   if (target === null || target === undefined) {
     target = { low: 0 | 0, high: 0 | 0, unsigned: false }
   }
@@ -140,7 +140,7 @@ function fromNumber (value, unsigned, target) {
   return target
 }
 
-function fromValue (value, unsigned, target) {
+export function fromValue (value, unsigned, target) {
   if (typeof unsigned === 'object' && unsigned !== null) {
     return fromValue(value, undefined, unsigned)
   }
@@ -174,14 +174,14 @@ function fromValue (value, unsigned, target) {
   return fromBits(value.low, value.high, typeof unsigned === 'boolean' ? unsigned : value.unsigned, target)
 }
 
-function toNumber (long) {
+export function toNumber (long) {
   if (long.unsigned) {
     return ((long.high >>> 0) * TWO_PWR_32_DBL) + (long.low >>> 0)
   }
   return long.high * TWO_PWR_32_DBL + (long.low >>> 0)
 }
 
-function toBytesLE (long, offset, target) {
+export function toBytesLE (long, offset, target) {
   if (offset && offset.buffer) {
     return toBytesLE(long, target, offset)
   }
@@ -208,7 +208,7 @@ function toBytesLE (long, offset, target) {
   return target
 }
 
-function fromBytesLE (source, unsigned, offset, target) {
+export function fromBytesLE (source, unsigned, offset, target) {
   if (typeof offset === 'object') {
     return fromBytesLE(source, unsigned, 0, offset)
   }
@@ -236,9 +236,7 @@ function fromBytesLE (source, unsigned, offset, target) {
   )
 }
 
-const fromBytes = isLE ? fromBytesLE : fromBytesBE
-
-function toBytesBE (long, offset, target) {
+export function toBytesBE (long, offset, target) {
   if (offset && offset.buffer) {
     return toBytesBE(long, target, offset)
   }
@@ -265,7 +263,7 @@ function toBytesBE (long, offset, target) {
   return target
 }
 
-function fromBytesBE (source, unsigned, offset, target) {
+export function fromBytesBE (source, unsigned, offset, target) {
   if (typeof offset === 'object') {
     return fromBytesBE(source, unsigned, 0, offset)
   }
@@ -293,7 +291,10 @@ function fromBytesBE (source, unsigned, offset, target) {
   )
 }
 
-const toString = (function () {
+export const fromBytes = isLE ? fromBytesLE : fromBytesBE
+export const toBytes = isLE ? toBytesLE : toBytesBE
+
+export const toString = (function () {
   const TMP_NEG = fromInt(0)
   const radixLong = fromInt(0)
   const tmpDiv = fromInt(0)
@@ -352,11 +353,11 @@ const toString = (function () {
   }
 })()
 
-function toInt (long) {
+export function toInt (long) {
   return long.unsigned ? long.low >>> 0 : long.low
 }
 
-const toBigInt = typeof BigInt === 'undefined'
+export const toBigInt = typeof BigInt === 'undefined'
   ? noBigInt
   : (function () {
       const NTWO_PWR_32_DBL = BigInt(TWO_PWR_32_DBL)
@@ -376,54 +377,54 @@ const toBigInt = typeof BigInt === 'undefined'
       }
     })()
 
-function isZero (long) {
+export function isZero (long) {
   return long.low === 0 && long.high === 0
 }
 
-function isOdd (long) {
+export function isOdd (long) {
   return (long.low & 1) === 1
 }
 
-function isEven (long) {
+export function isEven (long) {
   return (long.low & 1) === 0
 }
 
-function eq (a, b) {
+export function eq (a, b) {
   if (!a.unsigned !== !b.unsigned && (a.high >>> 31) === 1 && (b.high >>> 31) === 1) {
     return false
   }
   return a.high === b.high && a.low === b.low
 }
 
-function ne (a, b) {
+export function ne (a, b) {
   return !eq(a, b)
 }
 
-function lt (long, greater) {
+export function lt (long, greater) {
   return compare(long, greater) < 0
 }
 
-function le (long, sameOrGreater) {
+export function le (long, sameOrGreater) {
   return compare(long, sameOrGreater) <= 0
 }
 
-function ge (long, sameOrLesser) {
+export function ge (long, sameOrLesser) {
   return compare(long, sameOrLesser) >= 0
 }
 
-function gt (long, lesser) {
+export function gt (long, lesser) {
   return compare(long, lesser) > 0
 }
 
-function isNegative (long) {
+export function isNegative (long) {
   return !long.unsigned && long.high < 0
 }
 
-function isPositive (long) {
+export function isPositive (long) {
   return long.unsigned || long.high >= 0
 }
 
-const fromFloat = (function () {
+export const fromFloat = (function () {
   const buffer = new ArrayBuffer(8)
   const floatIn = new Float64Array(buffer)
   const intOut = new Uint32Array(buffer)
@@ -453,7 +454,7 @@ const fromFloat = (function () {
 })()
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L808-L843
-function add (long, addend, target) {
+export function add (long, addend, target) {
   // Divide each number into 4 chunks of 16 bits, and then sum the chunks.
   const a48 = long.high >>> 16
   const a32 = long.high & 0xFFFF
@@ -483,49 +484,49 @@ function add (long, addend, target) {
   return target
 }
 
-function toUnsigned (long, target) {
+export function toUnsigned (long, target) {
   target.low = long.low
   target.high = long.high
   target.unsigned = true
   return target
 }
 
-function toSigned (long, target) {
+export function toSigned (long, target) {
   target.low = long.low
   target.high = long.high
   target.unsigned = false
   return target
 }
 
-function not (long, target) {
+export function not (long, target) {
   target.low = ~long.low
   target.high = ~long.high
   target.unsigned = !!long.unsigned
   return target
 }
 
-function or (long, other, target) {
+export function or (long, other, target) {
   target.low = long.low | other.low
   target.high = long.high | other.high
   target.unsigned = !!long.unsigned
   return target
 }
 
-function xor (long, other, target) {
+export function xor (long, other, target) {
   target.low = long.low ^ other.low
   target.high = long.high ^ other.high
   target.unsigned = !!long.unsigned
   return target
 }
 
-function and (long, other, target) {
+export function and (long, other, target) {
   target.low = long.low & other.low
   target.high = long.high & other.high
   target.unsigned = !!long.unsigned
   return target
 }
 
-const neg = (function () {
+export const neg = (function () {
   const tmp = fromInt(0)
   return function neg (long, target) {
     if (!long.unsigned && eq(long, MIN_VALUE)) {
@@ -535,14 +536,14 @@ const neg = (function () {
   }
 })()
 
-const sub = (function () {
+export const sub = (function () {
   const tmp = fromInt(0)
   return function sub (long, subtrahend, target) {
     return add(long, neg(subtrahend, tmp), target)
   }
 })()
 
-const compare = (function () {
+export const compare = (function () {
   const tmp = fromInt(0)
   return function compare (a, b) {
     if (eq(a, b)) {
@@ -566,7 +567,7 @@ const compare = (function () {
 })()
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L1157-L1172
-function shr (long, numBits, target) {
+export function shr (long, numBits, target) {
   if ((numBits &= 63) === 0) {
     target.low = long.low
     target.high = long.high
@@ -582,7 +583,7 @@ function shr (long, numBits, target) {
 }
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L1207-L1219
-function shru (long, numBits, target) {
+export function shru (long, numBits, target) {
   if ((numBits &= 63) === 0) {
     target.low = long.low
     target.high = long.high
@@ -601,7 +602,7 @@ function shru (long, numBits, target) {
 }
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L1213-L1219
-function shl (long, numBits, target) {
+export function shl (long, numBits, target) {
   if ((numBits &= 63) === 0) {
     target.low = long.low
     target.high = long.high
@@ -616,7 +617,7 @@ function shl (long, numBits, target) {
   return target
 }
 
-function mulRaw (long, multiplier, target) {
+export function mulRaw (long, multiplier, target) {
   // If both longs are small, use float multiplication
   if (lt(long, TWO_PWR_24) && lt(multiplier, TWO_PWR_24)) {
     const numa = toNumber(long)
@@ -667,7 +668,7 @@ function mulRaw (long, multiplier, target) {
 }
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L865-L940
-const mul = (function () {
+export const mul = (function () {
   const TMP_MULTI1 = fromInt(0)
   const TMP_MULTI2 = fromInt(0)
   return function mul (long, multiplier, target) {
@@ -710,7 +711,7 @@ const mul = (function () {
 })()
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L957-L1062
-const div = (function () {
+export const div = (function () {
   const rem = fromInt(0)
   const approxRes = fromInt(0)
   const approxRem = fromInt(0)
@@ -809,7 +810,7 @@ const div = (function () {
   }
 })()
 
-const mod = (function () {
+export const mod = (function () {
   const tmp = fromInt(0)
   return function modjs (long, divisor, target) {
     div(long, divisor, tmp)
@@ -818,7 +819,7 @@ const mod = (function () {
   }
 })()
 
-function rotl (long, numBits, target) {
+export function rotl (long, numBits, target) {
   if ((numBits &= 63) === 0) {
     return copy(long, target)
   }
@@ -839,7 +840,7 @@ function rotl (long, numBits, target) {
   return target
 }
 
-function rotr (long, numBits, target) {
+export function rotr (long, numBits, target) {
   if ((numBits &= 63) === 0) {
     return copy(long, target)
   }
@@ -860,7 +861,7 @@ function rotr (long, numBits, target) {
   return target
 }
 
-function copy (source, target, forceUnsigned) {
+export function copy (source, target, forceUnsigned) {
   target.low = source.low | 0
   target.high = source.high | 0
   target.unsigned = forceUnsigned !== undefined ? forceUnsigned : !!source.unsigned
@@ -894,7 +895,7 @@ function getDigitsByRadix (radix) {
 }
 
 // Ported from https://github.com/dcodeIO/long.js/blob/ce11b4b2bd3ba1240a057d62018563d99db318f9/src/long.js#L227-L268
-function fromString (str, unsigned, radix, target) {
+export function fromString (str, unsigned, radix, target) {
   if (str.length === 0) {
     return copy(ZERO, target)
   }
@@ -976,74 +977,10 @@ function ctz32 (value) {
   return value ? 31 - c : c
 }
 
-function clz (long) {
+export function clz (long) {
   return long.high ? Math.clz32(long.high) : Math.clz32(long.low) + 32
 }
 
-function ctz (long) {
+export function ctz (long) {
   return long.low ? ctz32(long.low) : ctz32(long.high) + 32
 }
-
-module.exports = Object.freeze({
-  ZERO: ZERO,
-  UZERO: UZERO,
-  ONE: ONE,
-  UONE: UONE,
-  NEG_ONE: NEG_ONE,
-  MAX_VALUE: MAX_VALUE,
-  MIN_VALUE: MIN_VALUE,
-  MAX_UNSIGNED_VALUE: MAX_UNSIGNED_VALUE,
-  isZero: isZero,
-  isNegative: isNegative,
-  isPositive: isPositive,
-  isOdd: isOdd,
-  isEven: isEven,
-  eq: eq,
-  ne: ne,
-  lt: lt,
-  le: le,
-  gt: gt,
-  ge: ge,
-  compare: compare,
-  shr: shr,
-  shru: shru,
-  shl: shl,
-  rotr: rotr,
-  rotl: rotl,
-  mul: mul,
-  div: div,
-  mod: mod,
-  add: add,
-  sub: sub,
-  or: or,
-  xor: xor,
-  and: and,
-  not: not,
-  copy: copy,
-  neg: neg,
-  fromInt: fromInt,
-  toNumber: toNumber,
-  toInt: toInt,
-  toBigInt: toBigInt,
-  toString: toString,
-  toBytes: isLE ? toBytesLE : toBytesBE,
-  toBytesLE: toBytesLE,
-  toBytesBE: toBytesBE,
-  fromValue: fromValue,
-  fromBytes: fromBytes,
-  fromBytesLE: fromBytesLE,
-  fromBytesBE: fromBytesBE,
-  fromNumber: fromNumber,
-  fromBits: fromBits,
-  fromBigInt: fromBigInt,
-  fromString: fromString,
-  fromFloat: fromFloat,
-  clz: clz,
-  ctz: ctz,
-  isLong: isLong,
-  isLongLike: isLongLike,
-  isSLong: isSLong,
-  isULong: isULong,
-  toSigned: toSigned,
-  toUnsigned: toUnsigned
-})

@@ -5,16 +5,28 @@
   "main": "index.js",
   "type": "commonjs",
   "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.js",
+      "types": "./index.d.ts"
+    }
+  },
   "scripts": {
     "lint": "standard",
     "types": "npx tsd",
+    "prepare": "npm run test",
+    "build": "esm2umd longfn index.mjs > index.js",
     "test": "npm run lint && npm run cover && npm run perf && npm run types",
     "perf": "npm run perf:wasm && npm run perf:js",
     "perf:wasm": "node test/perf.js",
     "perf:js": "node --noexpose_wasm test/perf.js",
-    "unit": "node test/index.js",
+    "unit": "npm run build; node test/index.js",
     "verbose": "env TEST_VERBOSE=1 npm run unit",
-    "cover": "nyc --reporter=lcov --reporter=html npm run unit"
+    "cover": "c8 --reporter=lcov --reporter=html npm run unit"
+  },
+  "standard": {
+    "ignore": ["index.js", "*.ts"]
   },
   "keywords": [
     "math",
@@ -26,8 +38,9 @@
   "author": "Martin Heidegger <martin.heidegger@gmail.com>",
   "license": "APL",
   "devDependencies": {
+    "c8": "^7.11.0",
+    "esm2umd": "^0.2.0",
     "long": "^5.2.0",
-    "nyc": "^15.1.0",
     "secure-shuffle": "^2.0.0",
     "standard": "^16.0.4",
     "tape": "^5.5.2",
