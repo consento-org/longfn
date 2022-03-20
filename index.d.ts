@@ -248,6 +248,20 @@ declare namespace longfn {
   function varIntLength (long: ILong): VarBytes
 
   /**
+   * Converts this Long to its variable int zig-zag byte representation.
+   * 
+   * @link https://developers.google.com/protocol-buffers/docs/encoding#signed-ints
+   */
+  const toZigZag: ToBytes & {
+    bytes: VarBytes
+  }
+
+  /**
+   * Returns the number of bytes to required to turn a given Long to its zigzag byte representation.
+   */
+  function zigZagLength (long: ILong): VarBytes
+
+  /**
    * Converts the specified value to a Long.
    */
   function fromValue <T extends string | number | boolean | null | undefined | ArrayBufferView | number[] | ILong> (value: T, target?: ILongLike): T extends ISLong ? ISLong : T extends IULong ? IULong : ILong
@@ -310,6 +324,22 @@ declare namespace longfn {
    * Strict variant of fromVarInt that is faster
    */
   const fromVarIntRaw: FromBytesRaw & {
+    bytes: VarBytes
+  }
+
+  /**
+   * Converts this Long from its variable int zig-zag byte representation.
+   * 
+   * @link https://developers.google.com/protocol-buffers/docs/encoding#signed-ints
+   */
+  const fromZigZag: FromBytes & {
+    bytes: VarBytes
+  }
+
+  /**
+   * Strict variant of fromZigZag that is faster
+   */
+  const fromZigZagRaw: FromBytesRaw & {
     bytes: VarBytes
   }
 

@@ -60,6 +60,9 @@ const toUnsigned = long.toUnsigned
 const toVarInt = long.toVarInt
 const fromVarInt = long.fromVarInt
 const varIntLength = long.varIntLength
+const toZigZag = long.toZigZag
+const fromZigZag = long.fromZigZag
+const zigZagLength = long.zigZagLength
 
 const verbose = process.env.TEST_VERBOSE
 const TMP = fromInt(0, false)
@@ -2145,9 +2148,51 @@ test('to/fromVarInt', function (t) {
     { n: fromBits(0xFFFFFFFF, 0xFFFFFFFF, true), b: [ 255, 255, 255, 255, 255, 255, 255, 255, 255 ], len: 9 }
   ].forEach(function (fixture, index) {
     t.deepEquals(toVarInt(fixture.n, []), fixture.b, '#' + index + ' - toVarInt(0b' + toString(fixture.n, 2).padStart(64, '0') + ')')
-    t.deepEquals(fromVarInt(fixture.b, true), fixture.n, '#' + index + ' - fromVarInt(...)')
     t.equals(toVarInt.bytes, fixture.len, '#' + index + ' - toVarInt.bytes')
+    t.deepEquals(fromVarInt(fixture.b, true), fixture.n, '#' + index + ' - fromVarInt(...)')
+    t.equals(fromVarInt.bytes, fixture.len, '#' + index + ' - toVarInt.bytes')
     t.equals(varIntLength(fixture.n), fixture.len, '#' + index + ' - varIntLength(...)')
+  })
+  t.end()
+})
+
+test('to/fromZigZag', function (t) {
+  ;[
+    { n: fromInt(0), b: [ 0 ], len: 1 },
+    { n: fromInt(1), b: [ 2 ], len: 1 },
+    { n: fromInt(2), b: [ 4 ], len: 1 },
+    { n: fromInt(-1), b: [ 1 ], len: 1 },
+    { n: fromInt(-2), b: [ 3 ], len: 1 },
+    { n: fromInt(8), b: [ 16 ], len: 1 },
+    { n: fromInt(-64), b: [ 127 ], len: 1 },
+    { n: fromInt(64), b: [ 128, 1 ], len: 2 },
+    { n: fromInt(-65), b: [ 129, 1 ], len: 2 },
+    { n: fromInt(65), b: [ 130, 1 ], len: 2 },
+    { n: fromInt(-0b1 << 13), b: [ 255, 127 ], len: 2 },
+    { n: fromInt(8191), b: [ 254, 127 ], len: 2 },
+    { n: fromInt(0b1 << 13), b: [ 128, 128, 1 ], len: 3 },
+    { n: fromInt(-0b1 << 20), b: [ 255, 255, 127 ], len: 3 },
+    { n: fromInt(0b1 << 20), b: [ 128, 128, 128, 1 ], len: 4 },
+    { n: fromInt(-0b1 << 21), b: [ 255, 255, 255, 1 ], len: 4 },
+    { n: fromBigInt(BigInt(-0b1) << BigInt(27)), b: [ 255, 255, 255, 127 ], len: 4 },
+    { n: fromInt(0b1 << 27), b: [ 128, 128, 128, 128, 1 ], len: 5 },
+    { n: fromBigInt(BigInt(-0b1) << BigInt(28)), b: [ 255, 255, 255, 255, 1 ], len: 5 },
+    { n: fromBigInt(BigInt(-0b1) << BigInt(34)), b: [ 255, 255, 255, 255, 127 ], len: 5 },
+    { n: fromBigInt(BigInt(0b1) << BigInt(34)), b: [ 128, 128, 128, 128, 128, 1 ], len: 6 },
+    { n: fromBigInt(BigInt(-0b1) << BigInt(35)), b: [ 255, 255, 255, 255, 255, 1 ], len: 6 },
+    { n: fromBigInt(BigInt(0b1) << BigInt(41)), b: [ 128, 128, 128, 128, 128, 128, 1 ], len: 7 },
+    { n: fromBigInt(BigInt(-0b1) << BigInt(48)), b: [ 255, 255, 255, 255, 255, 255, 127 ], len: 7 },
+    { n: fromBigInt(BigInt(0b1) << BigInt(48)), b: [ 128, 128, 128, 128, 128, 128, 128, 1 ], len: 8 },
+    { n: fromBigInt(BigInt(-0b1) << BigInt(49)), b: [ 255, 255, 255, 255, 255, 255, 255, 1 ], len: 8 },
+    { n: fromBigInt(BigInt(0b1) << BigInt(55)), b: [ 128, 128, 128, 128, 128, 128, 128, 128, 1 ], len: 9 },
+    { n: fromBigInt(BigInt('0b1111111111111111111111111111111111111111111111111111111111111111')), b: [ 254, 255, 255, 255, 255, 255, 255, 255, 255 ], len: 9 },
+    { n: fromBigInt(BigInt('0b1111111111111111111111111111111111111111111111111111111111111111') * BigInt(-1)), b: [ 255, 255, 255, 255, 255, 255, 255, 255, 255 ], len: 9 },
+  ].forEach(function (fixture, index) {
+    t.deepEquals(toZigZag(fixture.n, []), fixture.b, '#' + index + ' - toZigZag(0b' + toString(fixture.n, 2).padStart(64, '0') + ')')
+    t.equals(toZigZag.bytes, fixture.len, '#' + index + ' - toZigZag.bytes')
+    t.deepEquals(fromZigZag(fixture.b, !!fixture.n.unsigned), Object.assign({}, fixture.n, { unsigned: !!fixture.n.unsigned }), '#' + index + ' - fromZigZag(...)')
+    t.equals(fromZigZag.bytes, fixture.len, '#' + index + ' - fromZigZag.bytes')
+    t.equals(zigZagLength(fixture.n), fixture.len, '#' + index + ' - zigZagLength(...)')
   })
   t.end()
 })
