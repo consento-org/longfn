@@ -181,20 +181,39 @@ export function toNumber (long) {
   return long.high * TWO_PWR_32_DBL + (long.low >>> 0)
 }
 
-export function toBytesLE (long, offset, target) {
-  if (offset && offset.buffer) {
-    return toBytesLE(long, target, offset)
-  }
-  const i = offset || 0
-  let out
-  if (!target) {
-    target = new Uint8Array(i + 8)
-    out = target
-  } else if (!(target instanceof Uint8Array)) {
-    out = new Uint8Array(target.buffer, target.byteOffset, target.byteLength)
+const toContext = {
+  out: null,
+  target: null,
+  offset: 0
+}
+
+function prepareToContext (offset, target) {
+  if (typeof offset === 'object' && offset !== null) {
+    const tmp = target
+    target = offset
+    offset = tmp || 0
   } else {
-    out = target
+    offset = offset || 0
   }
+  toContext.offset = offset
+  if (!target) {
+    target = new Uint8Array(offset + 8)
+    toContext.out = target
+  } else if (!(target instanceof Uint8Array) && target.buffer) {
+    toContext.out = new Uint8Array(target.buffer, target.byteOffset, target.byteLength)
+  } else {
+    toContext.out = target
+  }
+  toContext.target = target
+}
+
+export function toBytesLE (long, offset, target) {
+  prepareToContext(offset, target)
+  toBytesLERaw(long, toContext.offset, toContext.out)
+  return toContext.target
+}
+
+export function toBytesLERaw (long, i, out) {
   const hi = long.high
   const lo = long.low
   out[i] = lo & 0xff
@@ -205,51 +224,62 @@ export function toBytesLE (long, offset, target) {
   out[i + 5] = hi >>> 8 & 0xff
   out[i + 6] = hi >>> 16 & 0xff
   out[i + 7] = hi >>> 24
-  return target
+  return out
+}
+
+const fromContext = {
+  source: null,
+  target: null,
+  offset: 0
+}
+
+function prepareFromContext (source, unsigned, offset, target) {
+  if (typeof unsigned === 'number') {
+    target = offset
+    offset = unsigned
+    unsigned = false
+  }
+  if (typeof offset === 'object') {
+    target = offset
+    fromContext.offset = 0
+  } else {
+    fromContext.offset = offset || 0
+  }
+  if ((target === null || target === undefined)) {
+    fromContext.target = { low: 0 | 0, high: 0 | 0, unsigned: !!unsigned }
+  } else {
+    target.unsigned = !!unsigned
+    fromContext.target = target
+  }
+  fromContext.source = !(source instanceof Uint8Array) && source.buffer
+    ? new Uint8Array(source.buffer, source.byteOffset, source.byteLength)
+    : source
 }
 
 export function fromBytesLE (source, unsigned, offset, target) {
-  if (typeof offset === 'object') {
-    return fromBytesLE(source, unsigned, 0, offset)
-  }
-  if (typeof unsigned === 'number') {
-    return fromBytesLE(source, undefined, unsigned, offset)
-  }
-  if (target === null || target === undefined) {
-    target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
-  }
-  if (!(source instanceof Uint8Array)) {
-    source = new Uint8Array(source.buffer, source.byteOffset, source.byteLength)
-  }
-  const i = offset || 0
-  return fromBits(
-    source[i] |
+  prepareFromContext(source, unsigned, offset, target)
+  return fromBytesLERaw(fromContext.source, fromContext.offset, fromContext.target)
+}
+
+export function fromBytesLERaw (source, i, target) {
+  target.low = source[i] |
     source[i + 1] << 8 |
     source[i + 2] << 16 |
-    source[i + 3] << 24,
-    source[i + 4] |
+    source[i + 3] << 24
+  target.high = source[i + 4] |
     source[i + 5] << 8 |
     source[i + 6] << 16 |
-    source[i + 7] << 24,
-    unsigned,
-    target
-  )
+    source[i + 7] << 24
+  return target
 }
 
 export function toBytesBE (long, offset, target) {
-  if (offset && offset.buffer) {
-    return toBytesBE(long, target, offset)
-  }
-  const i = offset || 0
-  let out
-  if (!target) {
-    target = new Uint8Array(i + 8)
-    out = target
-  } else if (!(target instanceof Uint8Array)) {
-    out = new Uint8Array(target.buffer, target.byteOffset, target.byteLength)
-  } else {
-    out = target
-  }
+  prepareToContext(offset, target)
+  toBytesBERaw(long, toContext.offset, toContext.out)
+  return toContext.target
+}
+
+export function toBytesBERaw (long, i, out) {
   const hi = long.high
   const lo = long.low
   out[i] = hi >>> 24
@@ -260,39 +290,30 @@ export function toBytesBE (long, offset, target) {
   out[i + 5] = lo >>> 16 & 0xff
   out[i + 6] = lo >>> 8 & 0xff
   out[i + 7] = lo & 0xff
-  return target
+  return out
 }
 
 export function fromBytesBE (source, unsigned, offset, target) {
-  if (typeof offset === 'object') {
-    return fromBytesBE(source, unsigned, 0, offset)
-  }
-  if (typeof unsigned === 'number') {
-    return fromBytesBE(source, undefined, unsigned, offset)
-  }
-  if (target === null || target === undefined) {
-    target = { low: 0 | 0, high: 0 | 0, unsigned: unsigned }
-  }
-  if (!(source instanceof Uint8Array)) {
-    source = new Uint8Array(source.buffer, source.byteOffset, source.byteLength)
-  }
-  const i = offset || 0
-  return fromBits(
-    source[i + 4] << 24 |
+  prepareFromContext(source, unsigned, offset, target)
+  return fromBytesBERaw(fromContext.source, fromContext.offset, fromContext.target)
+}
+
+export function fromBytesBERaw (source, i, target) {
+  target.low = source[i + 4] << 24 |
     source[i + 5] << 16 |
     source[i + 6] << 8 |
-    source[i + 7],
-    source[i] << 24 |
+    source[i + 7]
+  target.high = source[i] << 24 |
     source[i + 1] << 16 |
     source[i + 2] << 8 |
-    source[i + 3],
-    unsigned,
-    target
-  )
+    source[i + 3]
+  return target
 }
 
 export const fromBytes = isLE ? fromBytesLE : fromBytesBE
+export const fromBytesRaw = isLE ? fromBytesLERaw : fromBytesBERaw
 export const toBytes = isLE ? toBytesLE : toBytesBE
+export const toBytesRaw = isLE ? toBytesLERaw : toBytesBERaw
 
 export const toString = (function () {
   const TMP_NEG = fromInt(0)

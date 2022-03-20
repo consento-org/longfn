@@ -29,11 +29,17 @@ const fromBits = long.fromBits
 const fromString = long.fromString
 const toString = long.toString
 const fromBytes = long.fromBytes
+const fromBytesRaw = long.fromBytesRaw
 const toBytes = long.toBytes
+const toBytesRaw = long.toBytesRaw
 const fromBytesBE = long.fromBytesBE
+const fromBytesBERaw = long.fromBytesBERaw
 const fromBytesLE = long.fromBytesLE
+const fromBytesLERaw = long.fromBytesLERaw
 const toBytesBE = long.toBytesBE
+const toBytesBERaw = long.toBytesBERaw
 const toBytesLE = long.toBytesLE
+const toBytesLERaw = long.toBytesLERaw
 const fromValue = long.fromValue
 const lt = long.lt
 const gt = long.gt
@@ -1778,6 +1784,32 @@ test('toBytes', function (t) {
   t.deepEqual(new Uint8Array(target32.buffer, target32.byteOffset, target32.byteLength), BEPad, 'BE uint32 2')
   t.equals(toBytesLE(longVal, target32, 2), target32, 'input is returned')
   t.deepEqual(new Uint8Array(target32.buffer, target32.byteOffset, target32.byteLength), LEPad, 'LE uint32 2')
+  t.deepEqual(toBytes(long.MAX_UNSIGNED_VALUE), new Uint8Array([
+    0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff
+  ]), 'from/toBytes MAX_VALUE')
+  t.end()
+})
+
+test('to/fromBytes Raw', function (t) {
+  let target = {}
+  let arr = []
+  t.equals(toBytesRaw({ low: 0x0f, high: 0xf0 }, 1, arr), arr)
+  t.deepEquals(arr, [, 0x0f, 0, 0, 0, 0xf0, 0, 0, 0])
+  t.equals(fromBytesRaw(arr, 1, target), target)
+  t.deepEquals(target, { low: 0x0f, high: 0xf0 })
+  target = {}
+  arr = []
+  t.equals(toBytesLERaw({ low: 0x0f, high: 0xf0 }, 1, arr), arr)
+  t.deepEquals(arr, [, 0x0f, 0, 0, 0, 0xf0, 0, 0, 0])
+  t.equals(fromBytesLERaw(arr, 1, target), target)
+  t.deepEquals(target, { low: 0x0f, high: 0xf0 })
+  target = {}
+  arr = []
+  t.equals(toBytesBERaw({ low: 0x0f, high: 0xf0 }, 1, arr), arr)
+  t.deepEquals(arr, [, 0, 0, 0, 0xf0, 0, 0, 0, 0x0f])
+  t.equals(fromBytesBERaw(arr, 1, target), target)
+  t.deepEquals(target, { low: 0x0f, high: 0xf0 })
   t.end()
 })
 

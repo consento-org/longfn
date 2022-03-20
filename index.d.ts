@@ -176,37 +176,46 @@ declare namespace longfn {
    */
   function toBigInt (long: ILong): bigint
 
+  interface ToBytes {
+    (long: ILong): Uint8Array
+    (long: ILong, offset: number): Uint8Array
+    <TTarget extends ArrayBufferView | number[]> (long: ILong, target: TTarget): TTarget
+    <TTarget extends ArrayBufferView | number[]> (long: ILong, offset: number, target: TTarget): TTarget
+    <TTarget extends ArrayBufferView | number[]> (long: ILong, target: TTarget, offset: number): TTarget
+  }
+  type ToBytesRaw = <TTarget extends ArrayBufferView | number[]> (long: ILong, offset: number, target: TTarget) => TTarget
+
   /**
    * Converts this Long to its system endian byte representation.
    * 
    * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView#endianness
    */
-  function toBytes (long: ILong): Uint8Array
-  function toBytes (long: ILong, offset: number): Uint8Array
-  function toBytes <TTarget extends ArrayBufferView> (long: ILong, target: TTarget): TTarget
-  function toBytes <TTarget extends ArrayBufferView> (long: ILong, offset: number, target: TTarget): TTarget
-  function toBytes <TTarget extends ArrayBufferView> (long: ILong, target: TTarget, offset: number): TTarget
+  const toBytes: ToBytes
+
+  /**
+   * Strict variant of toBytes that is faster
+   */
+  const toBytesRaw: ToBytesRaw
 
   /**
    * Converts this Long to its little endian byte representation.
    */
-  function toBytesLE (long: ILong): Uint8Array
-  function toBytesLE (long: ILong, offset: number): Uint8Array
-  function toBytesLE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget): TTarget
-  function toBytesLE <TTarget extends ArrayBufferView> (long: ILong, offset: number, target: TTarget): TTarget
-  function toBytesLE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget, offset: number): TTarget
+  const toBytesLE: ToBytes
+
+  /**
+   * Strict variant of toBytesLE that is faster
+   */
+  const toBytesLERaw: ToBytesRaw
 
   /**
    * Converts this Long to its big endian byte representation.
    */
-  function toBytesBE (long: ILong): Uint8Array
-  function toBytesBE (long: ILong, offset: number): Uint8Array
-  function toBytesBE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget): TTarget
-  function toBytesBE <TTarget extends ArrayBufferView> (long: ILong, offset: number, target: TTarget): TTarget
-  function toBytesBE <TTarget extends ArrayBufferView> (long: ILong, target: TTarget, offset: number): TTarget
-  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | ILong, target?: ILongLike): ISLong
-  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | ISLong, target?: ILongLike): ISLong
-  function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | IULong, target?: ILongLike): IULong
+  const toBytesBE: ToBytes
+
+  /**
+   * Strict variant of toBytesLE that is faster
+   */
+  const toBytesBERaw: ToBytesRaw
 
   /**
    * Converts the specified value to a Long.
@@ -217,31 +226,46 @@ declare namespace longfn {
   function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | ISLong, unsigned: null | undefined, target?: ILongLike): ISLong
   function fromValue (value: string | number | boolean | null | undefined | ArrayBufferView | number[] | IULong, unsigned: null | undefined, target?: ILongLike): IULong
 
+  interface FromBytes {
+    (bytes: ArrayBufferView | number[], unsigned: falsey, target?: ILongLike): ISLong
+    (bytes: ArrayBufferView | number[], unsigned: truey, target?: ILongLike): IULong
+    (bytes: ArrayBufferView | number[], unsigned: falsey, offset: number, target?: ILongLike): ISLong
+    (bytes: ArrayBufferView | number[], unsigned: truey, offset: number, target?: ILongLike): IULong
+  }
+
+  type FromBytesRaw = <TTarget extends ILong> (source: ArrayBufferView | number[], offset: number, target: TTarget) => TTarget
+
   /**
    * Creates a Long from the system byte representation, using the system's endianness.
    * 
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView#endianness
    */
-  function fromBytes (bytes: ArrayBufferView, unsigned: falsey, target?: ILongLike): ISLong
-  function fromBytes (bytes: ArrayBufferView, unsigned: truey, target?: ILongLike): IULong
-  function fromBytes (bytes: ArrayBufferView, unsigned: falsey, offset: number, target?: ILongLike): ISLong
-  function fromBytes (bytes: ArrayBufferView, unsigned: truey, offset: number, target?: ILongLike): IULong
+  const fromBytes: FromBytes
+
+  /**
+   * Strict variant of fromBytes that is faster
+   */
+  const fromBytesRaw: FromBytesRaw
 
   /**
    * Creates a Long from its little endian byte representation.
    */
-  function fromBytesLE (bytes: ArrayBufferView, unsigned: falsey, target?: ILongLike): ISLong
-  function fromBytesLE (bytes: ArrayBufferView, unsigned: truey, target?: ILongLike): IULong
-  function fromBytesLE (bytes: ArrayBufferView, unsigned: falsey, offset: number, target?: ILongLike): ISLong
-  function fromBytesLE (bytes: ArrayBufferView, unsigned: truey, offset: number, target?: ILongLike): IULong
+  const fromBytesLE: FromBytes
+
+  /**
+   * Strict variant of fromBytesLE that is faster
+   */
+  const fromBytesLERaw: FromBytesRaw
 
   /**
    * Creates a Long from its big endian byte representation.
    */
-  function fromBytesBE (bytes: ArrayBufferView, unsigned: falsey, target?: ILongLike): ISLong
-  function fromBytesBE (bytes: ArrayBufferView, unsigned: truey, target?: ILongLike): IULong
-  function fromBytesBE (bytes: ArrayBufferView, unsigned: falsey, offset: number, target?: ILongLike): ISLong
-  function fromBytesBE (bytes: ArrayBufferView, unsigned: truey, offset: number, target?: ILongLike): IULong
+  const fromBytesBE: FromBytes
+
+  /**
+   * Strict variant of fromBytesLE that is faster
+   */
+  const fromBytesBERaw: FromBytesRaw
 
   /**
    * Converts the Long to a string written in the specified radix.
