@@ -217,6 +217,36 @@ declare namespace longfn {
    */
   const toBytesBERaw: ToBytesRaw
 
+  type VarBytes = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+  /**
+   * Converts this Long to its variable int byte representation.
+   * 
+   * @link https://developers.google.com/protocol-buffers/docs/encoding#varints
+   */
+  const toVarInt: ToBytes & {
+    /**
+     * bytes written during the previous toVarInt call.
+     */
+    bytes: VarBytes
+  }
+
+  /**
+   * Strict variant of toVarInt that is faster
+   */
+  const toVarIntRaw: ToBytes & {
+    /**
+     * bytes written during the previous toVarIntRaw call.
+     */
+    bytes: VarBytes
+  }
+
+  /**
+   * Returns the number of bytes to required to turn a given Long to its
+   * var-int byte representation.
+   */
+  function varIntLength (long: ILong): VarBytes
+
   /**
    * Converts the specified value to a Long.
    */
@@ -266,6 +296,22 @@ declare namespace longfn {
    * Strict variant of fromBytesLE that is faster
    */
   const fromBytesBERaw: FromBytesRaw
+
+  /**
+   * Converts this Long from its variable int byte representation.
+   * 
+   * @link https://developers.google.com/protocol-buffers/docs/encoding#varints
+   */
+  const fromVarInt: FromBytes & {
+    bytes: VarBytes
+  }
+
+  /**
+   * Strict variant of fromVarInt that is faster
+   */
+  const fromVarIntRaw: FromBytesRaw & {
+    bytes: VarBytes
+  }
 
   /**
    * Converts the Long to a string written in the specified radix.

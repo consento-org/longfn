@@ -315,6 +315,210 @@ export const fromBytesRaw = isLE ? fromBytesLERaw : fromBytesBERaw
 export const toBytes = isLE ? toBytesLE : toBytesBE
 export const toBytesRaw = isLE ? toBytesLERaw : toBytesBERaw
 
+const MSB = 0b10000000
+const REST = 0b1111111
+
+export function toVarInt (long, offset, target) {
+  prepareToContext(offset, target)
+  toVarIntRaw(long, toContext.offset, toContext.out)
+  toVarInt.bytes = toVarIntRaw.bytes
+  return toContext.target
+}
+toVarInt.bytes = 1
+
+export function toVarIntRaw (long, i, out) {
+  const hi = long.high
+  const lo = long.low
+  const b8 = hi >>> 24
+  const b7 = hi >>> 17 & REST
+  const b6 = hi >>> 10 & REST
+  const b5 = hi >>> 3 & REST
+  const b4 = ((hi & 0b111) << 4) | (lo >>> 28)
+  const b3 = lo >>> 21 & REST
+  const b2 = lo >>> 14 & REST
+  const b1 = lo >>> 7 & REST
+  const b0 = lo & REST
+  if (b8 !== 0) {
+    toVarIntRaw.bytes = 9
+    out[i + 8] = b8
+    out[i + 7] = b7 | MSB
+    out[i + 6] = b6 | MSB
+    out[i + 5] = b5 | MSB
+    out[i + 4] = b4 | MSB
+    out[i + 3] = b3 | MSB
+    out[i + 2] = b2 | MSB
+    out[i + 1] = b1 | MSB
+    out[i] = b0 | MSB
+    return out
+  }
+  if (b7 !== 0) {
+    toVarIntRaw.bytes = 8
+    out[i + 7] = b7
+    out[i + 6] = b6 | MSB
+    out[i + 5] = b5 | MSB
+    out[i + 4] = b4 | MSB
+    out[i + 3] = b3 | MSB
+    out[i + 2] = b2 | MSB
+    out[i + 1] = b1 | MSB
+    out[i] = b0 | MSB
+    return out
+  }
+  if (b6 !== 0) {
+    toVarIntRaw.bytes = 7
+    out[i + 6] = b6
+    out[i + 5] = b5 | MSB
+    out[i + 4] = b4 | MSB
+    out[i + 3] = b3 | MSB
+    out[i + 2] = b2 | MSB
+    out[i + 1] = b1 | MSB
+    out[i] = b0 | MSB
+    return out
+  }
+  if (b5 !== 0) {
+    toVarIntRaw.bytes = 6
+    out[i + 5] = b5
+    out[i + 4] = b4 | MSB
+    out[i + 3] = b3 | MSB
+    out[i + 2] = b2 | MSB
+    out[i + 1] = b1 | MSB
+    out[i] = b0 | MSB
+    return out
+  }
+  if (b4 !== 0) {
+    toVarIntRaw.bytes = 5
+    out[i + 4] = b4
+    out[i + 3] = b3 | MSB
+    out[i + 2] = b2 | MSB
+    out[i + 1] = b1 | MSB
+    out[i] = b0 | MSB
+    return out
+  }
+  if (b3 !== 0) {
+    toVarIntRaw.bytes = 4
+    out[i + 3] = b3
+    out[i + 2] = b2 | MSB
+    out[i + 1] = b1 | MSB
+    out[i] = b0 | MSB
+    return out
+  }
+  if (b2 !== 0) {
+    toVarIntRaw.bytes = 3
+    out[i + 2] = b2
+    out[i + 1] = b1 | MSB
+    out[i] = b0 | MSB
+    return out
+  }
+  if (b1 !== 0) {
+    toVarIntRaw.bytes = 2
+    out[i + 1] = b1
+    out[i] = b0 | MSB
+    return out
+  }
+  toVarIntRaw.bytes = 1
+  out[i] = b0
+  return out
+}
+toVarIntRaw.bytes = 1
+
+export function varIntLength (long) {
+  const hi = long.high
+  const lo = long.low
+  const b8 = hi >>> 24
+  if (b8 !== 0) return 9
+  const b7 = hi >>> 17 & REST
+  if (b7 !== 0) return 8
+  const b6 = hi >>> 10 & REST
+  if (b6 !== 0) return 7
+  const b5 = hi >>> 3 & REST
+  if (b5 !== 0) return 6
+  const b4 = ((hi & 0b111) << 4) | (lo >>> 28)
+  if (b4 !== 0) return 5
+  const b3 = lo >>> 21 & REST
+  if (b3 !== 0) return 4
+  const b2 = lo >>> 14 & REST
+  if (b2 !== 0) return 3
+  const b1 = lo >>> 7 & REST
+  if (b1 !== 0) return 2
+  return 1
+}
+
+export function fromVarInt (source, unsigned, offset, target) {
+  prepareFromContext(source, unsigned, offset, target)
+  fromVarIntRaw(fromContext.source, fromContext.offset, fromContext.target)
+  fromVarInt.bytes = fromVarIntRaw.bytes
+  return fromContext.target
+}
+fromVarInt.bytes = 1
+
+export function fromVarIntRaw (source, i, target) {
+  let b = source[i]
+  if ((b & MSB) === 0) {
+    target.low = b
+    target.high = 0
+    fromVarIntRaw.bytes = 1
+    return target
+  }
+  let lo = b & REST
+  b = source[i + 1]
+  if ((b & MSB) === 0) {
+    target.low = lo | b << 7
+    target.high = 0
+    fromVarIntRaw.bytes = 2
+    return target
+  }
+  lo |= (b & REST) << 7
+  b = source[i + 2]
+  if ((b & MSB) === 0) {
+    target.low = lo | b << 14
+    target.high = 0
+    fromVarIntRaw.bytes = 3
+    return target
+  }
+  lo |= (b & REST) << 14
+  b = source[i + 3]
+  if ((b & MSB) === 0) {
+    target.low = lo | b << 21
+    target.high = 0
+    fromVarIntRaw.bytes = 4
+    return target
+  }
+  lo |= (b & REST) << 21
+  b = source[i + 4]
+  target.low = lo | (b & 0b1111) << 28
+  let hi = (b & 0b1110000) >> 4
+  if ((b & MSB) === 0) {
+    target.high = hi
+    fromVarIntRaw.bytes = 5
+    return target
+  }
+  b = source[i + 5]
+  if ((b & MSB) === 0) {
+    target.high = hi | b << 3
+    fromVarIntRaw.bytes = 6
+    return target
+  }
+  hi |= (b & REST) << 3
+  b = source[i + 6]
+  if ((b & MSB) === 0) {
+    target.high = hi | b << 10
+    fromVarIntRaw.bytes = 7
+    return target
+  }
+  hi |= (b & REST) << 10
+  b = source[i + 7]
+  if ((b & MSB) === 0) {
+    target.high = hi | b << 17
+    fromVarIntRaw.bytes = 8
+    return target
+  }
+  hi |= (b & REST) << 17
+  b = source[i + 8]
+  target.high = hi | (source[i + 8] << 24)
+  fromVarIntRaw.bytes = 9
+  return target
+}
+fromVarIntRaw.bytes = 1
+
 export const toString = (function () {
   const TMP_NEG = fromInt(0)
   const radixLong = fromInt(0)

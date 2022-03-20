@@ -57,6 +57,9 @@ const isULong = long.isULong
 const isSLong = long.isSLong
 const toSigned = long.toSigned
 const toUnsigned = long.toUnsigned
+const toVarInt = long.toVarInt
+const fromVarInt = long.fromVarInt
+const varIntLength = long.varIntLength
 
 const verbose = process.env.TEST_VERBOSE
 const TMP = fromInt(0, false)
@@ -2109,5 +2112,42 @@ test('to signed/unsigned', function (t) {
   t.deepEqual(toSigned(fromBits(1, 2, false), fromInt(0)), fromBits(1, 2, false))
   t.deepEqual(toUnsigned(fromBits(1, 2, true), fromInt(0)), fromBits(1, 2, true))
   t.deepEqual(toUnsigned(fromBits(1, 2, false), fromInt(0)), fromBits(1, 2, true))
+  t.end()
+})
+
+test('to/fromVarInt', function (t) {
+  ;[
+    { n: fromBits(1, 0, true), b: [ 1 ], len: 1 },
+    { n: fromBits(0b1111111, 0, true), b: [ 127 ], len: 1 },
+    { n: fromBits(1 << 7, 0, true), b: [ 128, 1 ], len: 2 },
+    { n: fromBits(0b1111111 << 7, 0, true), b: [ 128, 127 ], len: 2 },
+    { n: fromBits(0b11111111111111, 0, true), b: [ 255, 127 ], len: 2 },
+    { n: fromBits(1 << 14, 0, true), b: [ 128, 128, 1 ], len: 3 },
+    { n: fromBits(0b1111111 << 14, 0, true), b: [ 128, 128, 127 ], len: 3 },
+    { n: fromBits(0b111111111111111111111, 0, true), b: [ 255, 255, 127 ], len: 3 },
+    { n: fromBits(1 << 21, 0, true), b: [ 128, 128, 128, 1 ], len: 4 },
+    { n: fromBits(0b1111111 << 21, 0, true), b: [ 128, 128, 128, 127 ], len: 4 },
+    { n: fromBits(0b1111111111111111111111111111, 0, true), b: [ 255, 255, 255, 127 ], len: 4 },
+    { n: fromBits(1 << 28, 0, true), b: [ 128, 128, 128, 128, 1 ], len: 5 },
+    { n: fromBits(0b11110000000000000000000000000000, 0b111, true), b: [ 128, 128, 128, 128, 127 ], len: 5 },
+    { n: fromBits(0xFFFFFFFF, 0b111, true), b: [ 255, 255, 255, 255, 127 ], len: 5 },
+    { n: fromBits(0, 1 << 3, true), b: [ 128, 128, 128, 128, 128, 1 ], len: 6 },
+    { n: fromBits(0, 0b1111111 << 3, true), b: [ 128, 128, 128, 128, 128, 127 ], len: 6 },
+    { n: fromBits(0xFFFFFFFF, 0b1111111111, true), b: [ 255, 255, 255, 255, 255, 127 ], len: 6 },
+    { n: fromBits(0, 1 << 10, true), b: [ 128, 128, 128, 128, 128, 128, 1 ], len: 7 },
+    { n: fromBits(0, 0b1111111 << 10, true), b: [ 128, 128, 128, 128, 128, 128, 127 ], len: 7 },
+    { n: fromBits(0xFFFFFFFF, 0b11111111111111111, true), b: [ 255, 255, 255, 255, 255, 255, 127 ], len: 7 },
+    { n: fromBits(0, 1 << 17, true), b: [ 128, 128, 128, 128, 128, 128, 128, 1 ], len: 8 },
+    { n: fromBits(0, 0b1111111 << 17, true), b: [ 128, 128, 128, 128, 128, 128, 128, 127 ], len: 8 },
+    { n: fromBits(0xFFFFFFFF, 0b111111111111111111111111, true), b: [ 255, 255, 255, 255, 255, 255, 255, 127 ], len: 8 },
+    { n: fromBits(0, 1 << 24, true), b: [ 128, 128, 128, 128, 128, 128, 128, 128, 1 ], len: 9 },
+    { n: fromBits(0, 0b11111111000000000000000000000000, true), b: [ 128, 128, 128, 128, 128, 128, 128, 128, 255 ], len: 9 },
+    { n: fromBits(0xFFFFFFFF, 0xFFFFFFFF, true), b: [ 255, 255, 255, 255, 255, 255, 255, 255, 255 ], len: 9 }
+  ].forEach(function (fixture, index) {
+    t.deepEquals(toVarInt(fixture.n, []), fixture.b, '#' + index + ' - toVarInt(0b' + toString(fixture.n, 2).padStart(64, '0') + ')')
+    t.deepEquals(fromVarInt(fixture.b, true), fixture.n, '#' + index + ' - fromVarInt(...)')
+    t.equals(toVarInt.bytes, fixture.len, '#' + index + ' - toVarInt.bytes')
+    t.equals(varIntLength(fixture.n), fixture.len, '#' + index + ' - varIntLength(...)')
+  })
   t.end()
 })
