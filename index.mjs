@@ -337,10 +337,17 @@ function tmpToZigZag (long) {
 }
 
 export function toZigZag (long, offset, target) {
+  prepareToContext(offset, target)
+  toZigZagRaw(long, toContext.offset, toContext.out)
+  toZigZag.bytes = toZigZagRaw.bytes
+  return toContext.target
+}
+
+export function toZigZagRaw (long, i, out) {
   tmpToZigZag(long)
-  target = toVarInt(zigZagTmp, offset, target)
-  toZigZag.bytes = toVarInt.bytes
-  return target
+  toVarIntRaw(zigZagTmp, i, out)
+  toZigZagRaw.bytes = toVarIntRaw.bytes
+  return out
 }
 
 export function toVarIntRaw (long, i, out) {
@@ -473,15 +480,24 @@ export function fromVarInt (source, unsigned, offset, target) {
 fromVarInt.bytes = 1
 
 export function fromZigZag (source, unsigned, offset, target) {
-  target = fromVarInt(source, unsigned, offset, target)
+  prepareFromContext(source, unsigned, offset, target)
+  fromZigZagRaw(fromContext.source, fromContext.offset, fromContext.target)
+  fromZigZag.bytes = fromZigZagRaw.bytes
+  return fromContext.target
+}
+fromZigZag.bytes = 1
+
+export function fromZigZagRaw (source, i, target) {
+  fromVarIntRaw(source, i, target)
   const hi = target.high
   const lo = target.low
   const loB = -(lo & 1)
   target.low = (hi << 31) ^ (lo >>> 1) ^ loB
   target.high = (hi >>> 1) ^ loB
-  fromZigZag.bytes = fromVarInt.bytes
+  fromZigZagRaw.bytes = fromVarIntRaw.bytes
   return target
 }
+fromZigZagRaw.bytes = 1
 
 export function fromVarIntRaw (source, i, target) {
   let b = source[i]

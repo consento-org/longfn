@@ -58,10 +58,14 @@ const isSLong = long.isSLong
 const toSigned = long.toSigned
 const toUnsigned = long.toUnsigned
 const toVarInt = long.toVarInt
+const toVarIntRaw = long.toVarIntRaw
 const fromVarInt = long.fromVarInt
+const fromVarIntRaw = long.fromVarIntRaw
 const varIntLength = long.varIntLength
 const toZigZag = long.toZigZag
+const toZigZagRaw = long.toZigZagRaw
 const fromZigZag = long.fromZigZag
+const fromZigZagRaw = long.fromZigZagRaw
 const zigZagLength = long.zigZagLength
 
 const verbose = process.env.TEST_VERBOSE
@@ -2147,11 +2151,16 @@ test('to/fromVarInt', function (t) {
     { n: fromBits(0, 0b11111111000000000000000000000000, true), b: [ 128, 128, 128, 128, 128, 128, 128, 128, 255 ], len: 9 },
     { n: fromBits(0xFFFFFFFF, 0xFFFFFFFF, true), b: [ 255, 255, 255, 255, 255, 255, 255, 255, 255 ], len: 9 }
   ].forEach(function (fixture, index) {
-    t.deepEquals(toVarInt(fixture.n, []), fixture.b, '#' + index + ' - toVarInt(0b' + toString(fixture.n, 2).padStart(64, '0') + ')')
-    t.equals(toVarInt.bytes, fixture.len, '#' + index + ' - toVarInt.bytes')
-    t.deepEquals(fromVarInt(fixture.b, true), fixture.n, '#' + index + ' - fromVarInt(...)')
-    t.equals(fromVarInt.bytes, fixture.len, '#' + index + ' - toVarInt.bytes')
-    t.equals(varIntLength(fixture.n), fixture.len, '#' + index + ' - varIntLength(...)')
+    const prefix = '#' + index + ' - '
+    t.deepEquals(toVarInt(fixture.n, []), fixture.b, prefix + 'toVarInt(0b' + toString(fixture.n, 2).padStart(64, '0') + ')')
+    t.equals(toVarInt.bytes, fixture.len, prefix + 'toVarInt.bytes')
+    t.deepEquals(fromVarInt(fixture.b, true), fixture.n, prefix + 'fromVarInt(...)')
+    t.equals(fromVarInt.bytes, fixture.len, prefix + 'toVarInt.bytes')
+    t.equals(varIntLength(fixture.n), fixture.len, prefix + 'varIntLength(...)')
+    t.deepEquals(toVarIntRaw(fixture.n, 0, []), fixture.b, prefix + 'toVarIntRaw(...)')
+    t.equals(toVarIntRaw.bytes, fixture.len, prefix + 'toVarIntRaw.bytes')
+    t.deepEquals(fromVarIntRaw(fixture.b, 0, { unsigned: true }), fixture.n, prefix + 'fromVarIntRaw(...)')
+    t.equals(fromVarIntRaw.bytes, fixture.len, prefix + 'fromVarIntRaw.bytes')
   })
   t.end()
 })
@@ -2188,11 +2197,16 @@ test('to/fromZigZag', function (t) {
     { n: fromBigInt(BigInt('0b1111111111111111111111111111111111111111111111111111111111111111')), b: [ 254, 255, 255, 255, 255, 255, 255, 255, 255 ], len: 9 },
     { n: fromBigInt(BigInt('0b1111111111111111111111111111111111111111111111111111111111111111') * BigInt(-1)), b: [ 255, 255, 255, 255, 255, 255, 255, 255, 255 ], len: 9 },
   ].forEach(function (fixture, index) {
-    t.deepEquals(toZigZag(fixture.n, []), fixture.b, '#' + index + ' - toZigZag(0b' + toString(fixture.n, 2).padStart(64, '0') + ')')
-    t.equals(toZigZag.bytes, fixture.len, '#' + index + ' - toZigZag.bytes')
-    t.deepEquals(fromZigZag(fixture.b, !!fixture.n.unsigned), Object.assign({}, fixture.n, { unsigned: !!fixture.n.unsigned }), '#' + index + ' - fromZigZag(...)')
-    t.equals(fromZigZag.bytes, fixture.len, '#' + index + ' - fromZigZag.bytes')
-    t.equals(zigZagLength(fixture.n), fixture.len, '#' + index + ' - zigZagLength(...)')
+    const prefix = '#' + index + ' - '
+    t.deepEquals(toZigZag(fixture.n, []), fixture.b, prefix + 'toZigZag(0b' + toString(fixture.n, 2).padStart(64, '0') + ')')
+    t.equals(toZigZag.bytes, fixture.len, prefix + 'toZigZag.bytes')
+    t.deepEquals(fromZigZag(fixture.b, !!fixture.n.unsigned), Object.assign({}, fixture.n, { unsigned: !!fixture.n.unsigned }), prefix + 'fromZigZag(...)')
+    t.equals(fromZigZag.bytes, fixture.len, prefix + 'fromZigZag.bytes')
+    t.equals(zigZagLength(fixture.n), fixture.len, prefix + 'zigZagLength(...)')
+    t.deepEquals(toZigZagRaw(fixture.n, 0, []), fixture.b, prefix + 'toZigZagRaw(...)')
+    t.equals(toZigZagRaw.bytes, fixture.len, prefix + 'toZigZagRaw.bytes')
+    t.deepEquals(fromZigZagRaw(fixture.b, 0, { unsigned: !!fixture.n.unsigned }), fixture.n, prefix + 'fromZigZagRaw(...)')
+    t.equals(fromZigZagRaw.bytes, fixture.len, prefix + 'fromZigZagRaw.bytes')
   })
   t.end()
 })

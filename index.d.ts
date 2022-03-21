@@ -234,7 +234,7 @@ declare namespace longfn {
   /**
    * Strict variant of toVarInt that is faster
    */
-  const toVarIntRaw: ToBytes & {
+  const toVarIntRaw: ToBytesRaw & {
     /**
      * bytes written during the previous toVarIntRaw call.
      */
@@ -253,6 +253,16 @@ declare namespace longfn {
    * @link https://developers.google.com/protocol-buffers/docs/encoding#signed-ints
    */
   const toZigZag: ToBytes & {
+    bytes: VarBytes
+  }
+
+  /**
+   * Strict variant of toZigZag that is faster
+   */
+   const toZigZagRaw: ToBytesRaw & {
+    /**
+     * bytes written during the previous toVarIntRaw call.
+     */
     bytes: VarBytes
   }
 
